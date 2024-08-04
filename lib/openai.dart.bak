@@ -1,0 +1,57 @@
+import 'package:http/http.dart' as http;
+import 'sse/sse_client.dart';
+
+String removeTailSlash(String input) {
+  return input.trimRight().endsWith('/')
+      ? input.trimRight().substring(0, input.trimRight().length - 1)
+      : input.trimRight();
+}
+
+String parseMsg(List<List<String>> messages, String model) {
+  final List<Map<String, String>> jsonMessages = messages.map((message) {
+    return {
+      "role": message[0],
+      "content": message[1]
+    };
+  }).toList();
+  final String jsonString = '''{
+"model": "$model",
+"messages": [
+${jsonMessages.map((message) => '''{
+"role": "${message['role']}",
+"content": "${message['content']}"
+}''').join(',\n')}
+],
+"stream": true
+}''';
+print(jsonString);
+  return jsonString;
+}
+
+Future<void> completion(List<String> config, List<List<String>> message, Function onEevent, 
+    Function onDone, Function onErr) async {
+  final client = SseClient(
+    http.Request(
+        'POST', Uri.parse('${removeTailSlash(config[1])}/chat/completions'))
+      ..headers.addAll({
+        'Authorization': 'Bearer ${config[2]}',
+        'Content-Type': 'application/json',
+      })
+      ..body = parseMsg(message, config[3]),
+    httpClientProvider: () => http.Client(),
+    timeout: const Duration(seconds: 15),
+    setContentTypeHeader: false,
+  );
+  try {
+    var stream = await client.connect();
+    stream.listen((event){print(event);})
+      ..onData((event){print(event);})
+      ..onError((Object error){print(error);})
+      ..onDone((){print("done");});
+  } catch (e) {
+    print(e);
+    onErr(e);
+  }
+
+  client.close();
+}
