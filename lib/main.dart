@@ -46,7 +46,7 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
   final textController = TextEditingController();
   final scrollController = ScrollController();
   static const String originalMsg = "Sensei你终于来啦！\\我可是个乖乖看家的好孩子哦";
-  List<String> config = [];
+  Config config = Config(name: "", baseUrl: "", apiKey: "", model: "");
   String prompt = "";
   String userMsg = "";
   int splitCount = 0;
@@ -112,7 +112,7 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
     });
   }
 
-  void updateConfig(List<String> c){
+  void updateConfig(Config c){
     config = c;
     debugPrint("update config: ${c.toString()}");
   }
@@ -186,7 +186,7 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
     for (var m in msg) {
       debugPrint("${m[0]}: ${m[1]}");
     }
-    debugPrint("model: ${config[3]}");
+    debugPrint("model: ${config.model}");
   }
 
   void sendMsg(bool realSend) {

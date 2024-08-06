@@ -1,11 +1,12 @@
 // ignore_for_file: use_build_context_synchronously
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show FilteringTextInputFormatter;
 import 'storage.dart';
-import 'utils.dart' show snackBarAlert;
+import 'utils.dart' show snackBarAlert, Config, DecimalTextInputFormatter;
 
 class ConfigPage extends StatefulWidget {
-  final Function(List<String>) updateFunc;
+  final Function(Config) updateFunc;
   const ConfigPage({super.key, required this.updateFunc});
 
   @override
@@ -14,24 +15,32 @@ class ConfigPage extends StatefulWidget {
 
 class ConfigPageState extends State<ConfigPage> {
   String? selectedConfig;
-  List<List<String>> apiConfigs = [];
+  List<Config> apiConfigs = [];
   TextEditingController nameController = TextEditingController();
   TextEditingController urlController = TextEditingController();
   TextEditingController keyController = TextEditingController();
   TextEditingController modelController = TextEditingController();
+  TextEditingController temperatureController = TextEditingController();
+  TextEditingController frequencyPenaltyController = TextEditingController();
+  TextEditingController presencePenaltyController = TextEditingController();
+  TextEditingController maxTokensController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    getApiConfigs().then((List<List<String>> value) {
+    getApiConfigs().then((List<Config> value) {
       setState(() {
         apiConfigs = value;
         if (apiConfigs.isNotEmpty) {
-          selectedConfig = apiConfigs[0][0];
-          nameController.text = apiConfigs[0][0];
-          urlController.text = apiConfigs[0][1];
-          keyController.text = apiConfigs[0][2];
-          modelController.text = apiConfigs[0][3];
+          selectedConfig = apiConfigs[0].name;
+          nameController.text = apiConfigs[0].name;
+          urlController.text = apiConfigs[0].baseUrl;
+          keyController.text = apiConfigs[0].apiKey;
+          modelController.text = apiConfigs[0].model;
+          temperatureController.text = apiConfigs[0].temperature ?? "";
+          frequencyPenaltyController.text = apiConfigs[0].frequencyPenalty ?? "";
+          presencePenaltyController.text = apiConfigs[0].presencePenalty ?? "";
+          maxTokensController.text = apiConfigs[0].maxTokens ?? "";
           widget.updateFunc(apiConfigs[0]);
         }
       });
@@ -64,13 +73,13 @@ class ConfigPageState extends State<ConfigPage> {
               child: const Text('删除'),
               onPressed: () {
                 setState(() {
-                  for (List<String> c in apiConfigs) {
-                    if (c[0] == config) {
+                  for (Config c in apiConfigs) {
+                    if (c.name == config) {
                       deleteApiConfig(config);
                       apiConfigs.remove(c);
                       if (selectedConfig == config) {
                         if (apiConfigs.isNotEmpty) {
-                          selectedConfig = apiConfigs[0][0];
+                          selectedConfig = apiConfigs[0].name;
                         }
                       }
                       break;
@@ -100,17 +109,17 @@ class ConfigPageState extends State<ConfigPage> {
               value: selectedConfig,
               hint: const Text('选择配置'),
               //isExpanded: true,
-              items: apiConfigs.map((List<String> config) {
+              items: apiConfigs.map((Config config) {
                 return DropdownMenuItem<String>(
-                  value: config[0],
+                  value: config.name,
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(config[0]),
+                      Text(config.name),
                       IconButton(
                         icon: const Icon(Icons.delete),
                         onPressed: () {
-                          deleteConfirm(context, config[0]);
+                          deleteConfirm(context, config.name);
                         },
                       ),
                     ],
@@ -120,12 +129,16 @@ class ConfigPageState extends State<ConfigPage> {
               onChanged: (String? newValue) {
                 setState(() {
                   selectedConfig = newValue;
-                  for (List<String> c in apiConfigs) {
-                    if (c[0] == newValue) {
-                      nameController.text = c[0];
-                      urlController.text = c[1];
-                      keyController.text = c[2];
-                      modelController.text = c[3];
+                  for (Config c in apiConfigs) {
+                    if (c.name == newValue) {
+                      nameController.text = c.name;
+                      urlController.text = c.baseUrl;
+                      keyController.text = c.apiKey;
+                      modelController.text = c.model;
+                      temperatureController.text = c.temperature ?? "";
+                      frequencyPenaltyController.text = c.frequencyPenalty ?? "";
+                      presencePenaltyController.text = c.presencePenalty ?? "";
+                      maxTokensController.text = c.maxTokens ?? "";
                       widget.updateFunc(c);
                       break;
                     }
@@ -154,6 +167,50 @@ class ConfigPageState extends State<ConfigPage> {
               controller: modelController,
               decoration: const InputDecoration(labelText: 'model'),
             ),
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: temperatureController,
+                    decoration: const InputDecoration(labelText: 'temperature'),
+                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    inputFormatters: [DecimalTextInputFormatter()],
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: TextField(
+                    controller: frequencyPenaltyController,
+                    decoration: const InputDecoration(labelText: 'frequency penalty'),
+                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    inputFormatters: [DecimalTextInputFormatter()],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: presencePenaltyController,
+                    decoration: const InputDecoration(labelText: 'presence penalty'),
+                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    inputFormatters: [DecimalTextInputFormatter()],
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: TextField(
+                    controller: maxTokensController,
+                    decoration: const InputDecoration(labelText: 'max tokens'),
+                    keyboardType: const TextInputType.numberWithOptions(),
+                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                  ),
+                ),
+              ],
+            ),
             const SizedBox(height: 20),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -166,6 +223,10 @@ class ConfigPageState extends State<ConfigPage> {
                       urlController.clear();
                       keyController.clear();
                       modelController.clear();
+                      temperatureController.clear();
+                      frequencyPenaltyController.clear();
+                      presencePenaltyController.clear();
+                      maxTokensController.clear();
                     });
                   },
                 ),
@@ -179,43 +240,62 @@ class ConfigPageState extends State<ConfigPage> {
                       snackBarAlert(context, "请填写所有字段");
                     } else {
                       if (apiConfigs.isNotEmpty) {
-                        for (List<String> c in apiConfigs) {
-                          if (c[0] == nameController.text) {
+                        for (Config c in apiConfigs) {
+                          if (c.name == nameController.text) {
                             snackBarAlert(context, "名称重复");
                             return;
                           }
                         }
                       }
-                      setApiConfig(
-                        nameController.text,
-                        [
-                          urlController.text,
-                          keyController.text,
-                          modelController.text,
-                        ],
+                      Config newConfig = Config(
+                        name: nameController.text,
+                        baseUrl: urlController.text,
+                        apiKey: keyController.text,
+                        model: modelController.text,
+                        temperature: temperatureController.text.isEmpty
+                            ? null
+                            : temperatureController.text,
+                        frequencyPenalty: frequencyPenaltyController.text.isEmpty
+                            ? null
+                            : frequencyPenaltyController.text,
+                        presencePenalty: presencePenaltyController.text.isEmpty
+                            ? null
+                            : presencePenaltyController.text,
+                        maxTokens: maxTokensController.text.isEmpty
+                            ? null
+                            : maxTokensController.text,
                       );
+                      setApiConfig(newConfig);
                       setCurrentApiConfig(nameController.text);
                       setState(() {
-                        apiConfigs.add([
-                          nameController.text,
-                          urlController.text,
-                          keyController.text,
-                          modelController.text
-                        ]);
+                        apiConfigs.add(newConfig);
                         selectedConfig = nameController.text;
                       });
+                      snackBarAlert(context, "保存成功");
                     }
                   },
                 ),
                 ElevatedButton(
                   child: const Text("确定"),
                   onPressed: () {
-                    widget.updateFunc([
-                      nameController.text,
-                      urlController.text,
-                      keyController.text,
-                      modelController.text,
-                    ]);
+                    widget.updateFunc(Config(
+                      name: nameController.text,
+                      baseUrl: urlController.text,
+                      apiKey: keyController.text,
+                      model: modelController.text,
+                      temperature: temperatureController.text.isEmpty
+                          ? null
+                          : temperatureController.text,
+                      frequencyPenalty: frequencyPenaltyController.text.isEmpty
+                          ? null
+                          : frequencyPenaltyController.text,
+                      presencePenalty: presencePenaltyController.text.isEmpty
+                          ? null
+                          : presencePenaltyController.text,
+                      maxTokens: maxTokensController.text.isEmpty
+                          ? null
+                          : maxTokensController.text,
+                    ));
                     Navigator.pop(context);
                   },
                 ),

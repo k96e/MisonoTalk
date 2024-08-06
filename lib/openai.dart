@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:eventflux/eventflux.dart';
+import 'utils.dart' show Config;
 
 String removeTailSlash(String input) {
   return input.trimRight().endsWith('/')
@@ -7,20 +8,31 @@ String removeTailSlash(String input) {
       : input.trimRight();
 }
 
-Future<void> completion(List<String> config, List<List<String>> message,
+Future<void> completion(Config config, List<List<String>> message,
     Function onEevent, Function onDone, Function onErr) async {
+
+  Map<String, dynamic> data = {
+    'model': config.model,
+    'messages':
+        message.map((e) => {'role': e[0], 'content': e[1]}).toList(),
+    'stream': true,
+    if (config.temperature != null && double.tryParse(config.temperature!) != null) 
+      'temperature': double.parse(config.temperature!),
+    if (config.frequencyPenalty != null && double.tryParse(config.frequencyPenalty!) != null)
+      'frequency_penalty': double.parse(config.frequencyPenalty!),
+    if (config.presencePenalty != null && double.tryParse(config.presencePenalty!) != null)
+      'presence_penalty': double.parse(config.presencePenalty!),
+    if (config.maxTokens != null && int.tryParse(config.maxTokens!) != null)
+      'max_tokens': int.parse(config.maxTokens!),
+  };
+  // print(data);
   EventFlux.instance.connect(EventFluxConnectionType.post,
-      "${removeTailSlash(config[1])}/chat/completions",
+      "${removeTailSlash(config.baseUrl)}/chat/completions",
       header: {
-        'Authorization': 'Bearer ${config[2]}',
+        'Authorization': 'Bearer ${config.apiKey}',
         'Content-Type': 'application/json',
       },
-      body: {
-        'model': config[3],
-        'messages':
-            message.map((e) => {'role': e[0], 'content': e[1]}).toList(),
-        'stream': true,
-      },
+      body: data,
       onSuccessCallback: (EventFluxResponse? response) {
         response?.stream?.listen((data) {
           try {

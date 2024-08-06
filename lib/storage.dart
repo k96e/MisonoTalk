@@ -6,12 +6,34 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:file_picker/file_picker.dart';
+import 'utils.dart' show Config;
 
-// List 0:base_url 1:api_key 2:model_name
-Future<void> setApiConfig(String name,List<String> config) async {
+// List 0:base_url 1:api_key 2:model_name 3:temperature 4:frequency_penalty 5:presence_penalty 6:max_tokens
+Future<void> setApiConfig(Config config) async {
   final SharedPreferences prefs = await SharedPreferences.getInstance();
-  await prefs.setStringList("api_$name", config);
-  debugPrint("set api $name: ${config.toString()}");
+  List<String> configList = [config.baseUrl,config.apiKey,config.model];
+  if (config.temperature != null) {
+    configList.add(config.temperature!);
+  } else {
+    configList.add('');
+  }
+  if (config.frequencyPenalty != null) {
+    configList.add(config.frequencyPenalty!);
+  } else {
+    configList.add('');
+  }
+  if (config.presencePenalty != null) {
+    configList.add(config.presencePenalty!);
+  } else {
+    configList.add('');
+  }
+  if (config.maxTokens != null) {
+    configList.add(config.maxTokens!);
+  } else {
+    configList.add('');
+  }
+  await prefs.setStringList("api_${config.name}", configList);
+  debugPrint("set api ${config.name}: ${config.toString()}");
 }
 
 Future<void> setCurrentApiConfig(String name) async {
@@ -26,21 +48,37 @@ Future<void> deleteApiConfig(String name) async {
   debugPrint("delete api $name");
 }
 
-Future<List<List<String>>> getApiConfigs() async {
+Future<List<Config>> getApiConfigs() async {
   final SharedPreferences prefs = await SharedPreferences.getInstance();
-  List<List<String>> configs = [];
+  List<Config> configs = [];
   String current = prefs.getString("current_api") ?? "";
   Set<String> keys = prefs.getKeys();
   if (current.isNotEmpty) {
     if (prefs.getStringList(current) == null) {
       await prefs.remove("current_api");
     } else {
-      configs.add([current.replaceFirst("api_", "")]+(prefs.getStringList(current) ?? ['','','','']));
+      List<String> currentConfig = prefs.getStringList(current) ?? ['','','',''];
+      if(currentConfig.length==3){
+        configs.add(Config(name: current.replaceFirst("api_", ""), baseUrl: currentConfig[0], 
+          apiKey: currentConfig[1], model: currentConfig[2]));
+      } else if(currentConfig.length==7){
+        configs.add(Config(name: current.replaceFirst("api_", ""), baseUrl: currentConfig[0], 
+          apiKey: currentConfig[1], model: currentConfig[2], temperature: currentConfig[3],
+          frequencyPenalty: currentConfig[4], presencePenalty: currentConfig[5], maxTokens: currentConfig[6]));
+      }
     }
   }
   for (String key in keys) {
     if (key.startsWith("api_") && key != current) {
-      configs.add([key.replaceFirst("api_", "")]+(prefs.getStringList(key) ?? ['','','','']));
+      List<String> currentConfig = prefs.getStringList(key) ?? ['','','',''];
+      if(currentConfig.length==3){
+        configs.add(Config(name: key.replaceFirst("api_", ""), baseUrl: currentConfig[0], 
+          apiKey: currentConfig[1], model: currentConfig[2]));
+      } else if(currentConfig.length==7){
+        configs.add(Config(name: key.replaceFirst("api_", ""), baseUrl: currentConfig[0], 
+          apiKey: currentConfig[1], model: currentConfig[2], temperature: currentConfig[3],
+          frequencyPenalty: currentConfig[4], presencePenalty: currentConfig[5], maxTokens: currentConfig[6]));
+      }
     }
   }
   debugPrint("query api configs: ${configs.toString()}");

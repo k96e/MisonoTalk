@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 
 // type 1:asstant 2:user 3:system 4:timestamp
@@ -27,6 +28,29 @@ class Message {
       message: json['message'],
       type: json['type'],
     );
+  }
+}
+
+class Config {
+  String name;
+  String baseUrl;
+  String apiKey;
+  String model;
+  String? temperature;
+  String? frequencyPenalty;
+  String? presencePenalty;
+  String? maxTokens;
+
+  Config({required this.name, required this.baseUrl, 
+    required this.apiKey, required this.model,
+    this.temperature, this.frequencyPenalty, 
+    this.presencePenalty, this.maxTokens});
+
+  @override
+  String toString() {
+    return 'Config{name: $name, baseUrl: $baseUrl, apiKey: $apiKey, model: $model, '
+    'temperature: $temperature, frequencyPenalty: $frequencyPenalty, '
+    'presencePenalty: $presencePenalty, maxTokens: $maxTokens}';
   }
 }
 
@@ -108,4 +132,22 @@ void errDialog(BuildContext context, String content) {
       ],
     ),
   );
+}
+
+class DecimalTextInputFormatter extends TextInputFormatter {
+  @override
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
+    final newText = newValue.text;
+    if (newText.isEmpty || newText == '.') {
+      return newValue;
+    }
+    final newDouble = double.tryParse(newText);
+    if (newDouble == null) {
+      return oldValue;
+    }
+    return newValue;
+  }
 }
