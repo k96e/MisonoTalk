@@ -1,7 +1,7 @@
 # MisonoTalk
 
 ### 下载
- [Github Release](https://github.com/k96e/MisonoTalk/releases/download/publish/app-arm64-v8a-release.apk)
+ [Github Release](https://github.com/k96e/MisonoTalk/releases)
 
 ### 使用
 #### 配置
