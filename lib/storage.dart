@@ -2,11 +2,13 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:file_picker/file_picker.dart';
 import 'utils.dart' show Config;
+
 
 // List 0:base_url 1:api_key 2:model_name 3:temperature 4:frequency_penalty 5:presence_penalty 6:max_tokens
 Future<void> setApiConfig(Config config) async {
@@ -134,6 +136,20 @@ Future<String> convertToJson() async {
     allPrefs[key] = prefs.get(key);
   }
   return jsonEncode(allPrefs);
+}
+
+Future<String> getPrompt({bool isDefault=false}) async {
+  final SharedPreferences prefs = await SharedPreferences.getInstance();
+  String? prompt = prefs.getString("custom_prompt");
+  if (prompt == null || prompt.length < 200 || isDefault) {
+    prompt = await rootBundle.loadString('assets/prompt.txt');
+  }
+  return prompt;
+}
+
+Future<void> setPrompt(String prompt) async {
+  final SharedPreferences prefs = await SharedPreferences.getInstance();
+  await prefs.setString("custom_prompt", prompt);
 }
 
 Future<void> restoreFromJson(jsonString) async {

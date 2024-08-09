@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart' show rootBundle;
 import 'dart:io' show Platform;
 import 'chatview.dart';
 import 'configpage.dart';
@@ -47,7 +46,6 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
   final scrollController = ScrollController();
   static const String originalMsg = "Sensei你终于来啦！\\我可是个乖乖看家的好孩子哦";
   Config config = Config(name: "", baseUrl: "", apiKey: "", model: "");
-  String prompt = "";
   String userMsg = "";
   int splitCount = 0;
   bool inputLock = false;
@@ -55,10 +53,6 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
   List<Message> messages = [
     Message(message: originalMsg, type: Message.assistant),
   ];
-
-  Future<void> loadPrompt() async {
-    prompt = await rootBundle.loadString("assets/prompt.txt");
-  }
 
   @override
   void initState() {
@@ -74,7 +68,6 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
         config = configs[0];
       }
     });
-    loadPrompt();
   }
 
   @override
@@ -195,7 +188,7 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
     debugPrint("model: ${config.model}");
   }
 
-  void sendMsg(bool realSend) {
+  Future<void> sendMsg(bool realSend) async {
     if (inputLock) {
       return;
     }
@@ -224,7 +217,7 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
       inputLock = true;
       debugPrint("inputLocked");
     });
-    List<List<String>> msg = parseMsg(prompt, messages);
+    List<List<String>> msg = parseMsg(await getPrompt(), messages);
     logMsg(msg.sublist(1));
     try {
       String response = "";
@@ -257,6 +250,7 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
       });
       debugPrint("inputUnlocked");
       debugPrint(e.toString());
+      if(!mounted) return;
       errDialog(context, e.toString());
     }
   }
@@ -311,6 +305,8 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
                 if (value == 'Clear') {
                   clearMsg();
                 } else if (value == 'Save') {
+                  String prompt = await getPrompt();
+                  if(!context.mounted) return;
                   String? value = await namingHistory(context, "", config, parseMsg(prompt, messages));
                   if (value != null) {
                     debugPrint(value);

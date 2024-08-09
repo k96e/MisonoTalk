@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show FilteringTextInputFormatter;
 import 'storage.dart';
+import 'prompteditor.dart';
 import 'utils.dart' show snackBarAlert, Config, DecimalTextInputFormatter;
 
 class ConfigPage extends StatefulWidget {
@@ -305,6 +306,15 @@ class ConfigPageState extends State<ConfigPage> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
+                ElevatedButton(
+                  child: const Text('编辑Prompt'),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const PromptEditor()),
+                    );
+                  },
+                ),
                 ElevatedButton(
                   child: const Text('备份'),
                   onPressed: () async {
