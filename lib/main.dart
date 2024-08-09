@@ -184,6 +184,7 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
     setState(() {
       messages.clear();
       messages.add(Message(message: originalMsg, type: Message.assistant));
+      setTempHistory(msgListToJson(messages));
     });
   }
 
