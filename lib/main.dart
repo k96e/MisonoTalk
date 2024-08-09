@@ -64,6 +64,11 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    getTempHistory().then((msg) {
+      if (msg != null) {
+        loadHistory(msg);
+      }
+    });
     getApiConfigs().then((configs) {
       if (configs.isNotEmpty) {
         config = configs[0];
@@ -237,9 +242,7 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
             inputLock = false;
           });
           debugPrint("inputUnlocked");
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            setScrollPercent(1.0);
-          });
+          setTempHistory(msgListToJson(messages));
         }, (e){
           setState(() {
             inputLock = false;
@@ -320,6 +323,9 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
                   if(messages.last.type != Message.timestamp){
                     setState(() {
                       messages.add(Message(message: DateTime.now().millisecondsSinceEpoch.toString(), type: Message.timestamp));
+                    });
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      setScrollPercent(1.0);
                     });
                   }
                 } 

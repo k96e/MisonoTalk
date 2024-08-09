@@ -115,6 +115,16 @@ void deleteHistory(String key) async {
   }
 }
 
+void setTempHistory(String msg) async {
+  final SharedPreferences prefs = await SharedPreferences.getInstance();
+  await prefs.setString("temp_history", msg);
+}
+
+Future<String?> getTempHistory() async {
+  final SharedPreferences prefs = await SharedPreferences.getInstance();
+  return prefs.getString("temp_history");
+}
+
 Future<String> convertToJson() async {
   final prefs = await SharedPreferences.getInstance();
   final keys = prefs.getKeys();
