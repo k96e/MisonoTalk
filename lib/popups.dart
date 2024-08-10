@@ -141,6 +141,42 @@ void userPopup(BuildContext context, String msg, LongPressStartDetails details, 
   });
 }
 
+void systemPopup(BuildContext context, String msg, Function(String,bool) onEdited) {
+  TextEditingController controller = TextEditingController(text: msg);
+  showDialog(context: context, builder: (context) {
+    return AlertDialog(
+      title: const Text('编辑System Instruction'),
+      content: TextField(
+        maxLines: null,
+        minLines: 1,
+        controller: controller,
+      ),
+      actions: [
+        TextButton(
+          onPressed: () {
+            Navigator.of(context).pop();
+          },
+          child: const Text('取消'),
+        ),
+        TextButton(
+          onPressed: () {
+            onEdited(controller.text,false);
+            Navigator.of(context).pop();
+          },
+          child: const Text('确定'),
+        ),
+        TextButton(
+          onPressed: () {
+            onEdited(controller.text,true);
+            Navigator.of(context).pop();
+          },
+          child: const Text('确定并提交'),
+        )
+      ],
+    );
+  });
+}
+
 void timePopup(BuildContext context, int oldTime, Function(DateTime) onEdited) {
   showDatePicker(
     context: context,

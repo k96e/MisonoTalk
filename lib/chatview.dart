@@ -28,30 +28,37 @@ class ChatElement extends StatelessWidget {
       DateTime t = DateTime.fromMillisecondsSinceEpoch(int.parse(message));
       String timestr = "${t.hour.toString().padLeft(2,'0')}:"
         "${t.minute.toString().padLeft(2,'0')}";
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Container(
-            decoration: BoxDecoration(
-              color: const Color(0xffdce5ec),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-            child: Text(
-              timestr,
-              style: const TextStyle(
-                fontSize: 16,
-                color: Color(0xff4c5b70),
-              ),
-            ),
-          ),
-          const SizedBox(height: 5),
-        ],
-      );
-    } else {
+      return centerBubble(timestr);
+    } else if (type == Message.system) {
+      return centerBubble("System Instruction Here");
+    } 
+    else {
       return const SizedBox.shrink();
     }
   }
+}
+
+Widget centerBubble(String msg) {
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.center,
+    children: [
+      Container(
+        decoration: BoxDecoration(
+          color: const Color(0xffdce5ec),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+        child: Text(
+          msg,
+          style: const TextStyle(
+            fontSize: 16,
+            color: Color(0xff4c5b70),
+          ),
+        ),
+      ),
+      const SizedBox(height: 5),
+    ],
+  );
 }
 
 class ChatBubbleLayoutLeft extends StatelessWidget {

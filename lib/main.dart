@@ -119,15 +119,21 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
     debugPrint("index: $index");
     debugPrint("type: ${messages[index].type}");
     if(messages[index].type == Message.assistant){
-      assistantPopup(context, messages[index].message, details, (edited){
+      assistantPopup(context, messages[index].message, details, (String edited){
         debugPrint("edited: $edited");
+        if(edited.isEmpty){
+          return;
+        }
         setState(() {
           messages[index].message = edited;
         });
       });
     } else if(messages[index].type == Message.user){
-      userPopup(context, messages[index].message, details, (edited,isResend){
+      userPopup(context, messages[index].message, details, (String edited,bool isResend){
         debugPrint("edited: $edited");
+        if(edited.isEmpty){
+          return;
+        }
         setState(() {
           messages[index].message = edited;
         });
@@ -143,6 +149,23 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
         setState(() {
           messages[index].message = newTime.millisecondsSinceEpoch.toString();
         });
+      });
+    } else if(messages[index].type == Message.system){
+      systemPopup(context, messages[index].message, (String edited,bool isSend){
+        debugPrint("edited: $edited");
+        if(edited.isEmpty){
+          setState(() {
+            messages.removeAt(index);
+          });
+        } else {
+          setState(() {
+            messages[index].message = edited;
+          });
+          if(isSend){
+            messages.removeRange(index+1, messages.length);
+            sendMsg(true,forceSend: true);
+          }
+        }
       });
     }
   }
@@ -188,31 +211,33 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
     debugPrint("model: ${config.model}");
   }
 
-  Future<void> sendMsg(bool realSend) async {
+  Future<void> sendMsg(bool realSend,{bool forceSend=false}) async {
     if (inputLock) {
       return;
     }
-    if((!realSend)||(realSend&&textController.text.isNotEmpty)){
-      setState(() {
-        if(messages.last.type == Message.user){
-          userMsg = "$userMsg\\${textController.text}";
-          messages.last.message = userMsg;
-        } else {
-          if (messages.length==1) {
-            messages.add(Message(message: DateTime.now().millisecondsSinceEpoch.toString(), type: Message.timestamp));
+    if(!forceSend){
+      if((!realSend)||(realSend&&textController.text.isNotEmpty)){
+        setState(() {
+          if(messages.last.type == Message.user){
+            userMsg = "$userMsg\\${textController.text}";
+            messages.last.message = userMsg;
+          } else {
+            if (messages.length==1) {
+              messages.add(Message(message: DateTime.now().millisecondsSinceEpoch.toString(), type: Message.timestamp));
+            }
+            userMsg = textController.text;
+            messages.add(Message(message: userMsg, type: Message.user));
           }
-          userMsg = textController.text;
-          messages.add(Message(message: userMsg, type: Message.user));
-        }
-        textController.clear();
-      });
-      debugPrint(userMsg);
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        setScrollPercent(1.0);
-      });
-      if(!realSend){return;}
+          textController.clear();
+        });
+        debugPrint(userMsg);
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          setScrollPercent(1.0);
+        });
+        if(!realSend){return;}
+      }
+      userMsg = "";
     }
-    userMsg = "";
     setState(() {
       inputLock = true;
       debugPrint("inputLocked");
@@ -293,6 +318,10 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
                   child: Text('Time'),
                 ),
                 const PopupMenuItem(
+                  value: 'System',
+                  child: Text('System'),
+                ),
+                const PopupMenuItem(
                   value: 'History',
                   child: Text('History...'),
                 ),
@@ -325,7 +354,21 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
                       setScrollPercent(1.0);
                     });
                   }
-                } 
+                } else if (value == 'System') {
+                  systemPopup(context, "", (String edited,bool isSend){
+                    setState(() {
+                      if(edited.isNotEmpty){
+                        messages.add(Message(message: edited, type: Message.system));
+                        if(isSend){
+                          sendMsg(true,forceSend: true);
+                        }
+                        WidgetsBinding.instance.addPostFrameCallback((_) {
+                          setScrollPercent(1.0);
+                        });
+                      }
+                    });
+                  });
+                }
                 else if (value == 'Settings') {
                   Navigator.push(
                       context,
