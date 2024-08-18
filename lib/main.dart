@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show HapticFeedback;
 import 'dart:io' show Platform;
 import 'chatview.dart';
 import 'configpage.dart';
@@ -86,6 +87,9 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
     if(bottom>10 && !keyboardOn){
       debugPrint("keyboard on");
       keyboardOn = true;
+      if(ModalRoute.of(context)?.isCurrent != true){
+        return;
+      }
       Future.delayed(const Duration(milliseconds: 200), () => setScrollPercent(1.0));
     } else if(bottom<10 && keyboardOn){
       debugPrint("keyboard off");
@@ -116,12 +120,14 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
   }
 
   void onMsgPressed(int index,LongPressStartDetails details){
-    debugPrint("index: $index");
-    debugPrint("type: ${messages[index].type}");
+    HapticFeedback.heavyImpact();
     if(messages[index].type == Message.assistant){
       assistantPopup(context, messages[index].message, details, (String edited){
         debugPrint("edited: $edited");
         if(edited.isEmpty){
+          setState(() {
+            messages.removeRange(index, messages.length);
+          });
           return;
         }
         setState(() {
@@ -132,6 +138,9 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
       userPopup(context, messages[index].message, details, (String edited,bool isResend){
         debugPrint("edited: $edited");
         if(edited.isEmpty){
+          setState(() {
+            messages.removeRange(index, messages.length);
+          });
           return;
         }
         setState(() {
@@ -440,7 +449,7 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
                             onEditingComplete: (){
                               if(textController.text.isEmpty && userMsg.isNotEmpty){
                                 sendMsg(true);
-                              } else {
+                              } else if(textController.text.isNotEmpty){
                                 sendMsg(false);
                               }
                             },
