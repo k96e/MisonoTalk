@@ -104,7 +104,8 @@ class ConfigPageState extends State<ConfigPage> {
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Column(
+        child: 
+        SingleChildScrollView(child: Column(
           children: [
             DropdownButton<String>(
               value: selectedConfig,
@@ -347,10 +348,10 @@ class ConfigPageState extends State<ConfigPage> {
                 ),
               ],
             ),
-            const Spacer(),
             const Center(child: Opacity(opacity: 0.3,child: Text("@k96e"))),
           ],
         ),
+        )
       ),
     );
   }
