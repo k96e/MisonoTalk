@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'storage.dart';
 import 'openai.dart' show completion;
-import 'utils.dart' show errDialog, snackBarAlert, Config;
+import 'utils.dart' show snackBarAlert, Config;
 
 class HistoryPage extends StatefulWidget {
   final Function(String) updateFunc;
@@ -112,7 +112,21 @@ Future<String?> namingHistory(BuildContext context,String timeStr,Config config,
             }, (){
               snackBarAlert(context, "完成");
             }, (e){
-              errDialog(context, e);
+              showDialog(
+                context: context,
+                builder: (context) => AlertDialog(
+                  title: const Text("Error"),
+                  content: Text(e.toString()),
+                  actions: [
+                    TextButton(
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      },
+                      child: const Text('确定'),
+                    ),
+                  ],
+                ),
+              );
             });
           },
           child: const Text('AI'),

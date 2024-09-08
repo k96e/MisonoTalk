@@ -116,24 +116,6 @@ void snackBarAlert(BuildContext context, String msg) {
   );
 }
 
-void errDialog(BuildContext context, String content) {
-  showDialog(
-    context: context,
-    builder: (context) => AlertDialog(
-      title: const Text("Error"),
-      content: Text(content),
-      actions: [
-        TextButton(
-          onPressed: () {
-            Navigator.of(context).pop();
-          },
-          child: const Text('确定'),
-        ),
-      ],
-    ),
-  );
-}
-
 class DecimalTextInputFormatter extends TextInputFormatter {
   @override
   TextEditingValue formatEditUpdate(

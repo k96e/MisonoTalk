@@ -220,6 +220,31 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
     debugPrint("model: ${config.model}");
   }
 
+  void errDialog(String content){
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Error"),
+        content: Text(content),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            child: const Text('确定'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              sendMsg(true,forceSend: true);
+            },
+            child: const Text('重试'),
+          ),
+        ],
+      ),
+    );
+  }
+
   Future<void> sendMsg(bool realSend,{bool forceSend=false}) async {
     if (inputLock) {
       return;
@@ -255,7 +280,7 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
     logMsg(msg.sublist(1));
     try {
       String response = "";
-      completion(config, msg, (resp){
+      await completion(config, msg, (resp){
           if(resp.toString().contains("\\")){
             resp = randomizeBackslashes(resp.replaceAll("\\\\", "\\"));
           }
@@ -271,12 +296,12 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
           });
           debugPrint("inputUnlocked");
           setTempHistory(msgListToJson(messages));
-        }, (e){
+        }, (err){
           setState(() {
             inputLock = false;
           });
           debugPrint("inputUnlocked");
-          errDialog(context, e);
+          errDialog(err.toString());
         });
     } catch (e) {
       setState(() {
@@ -285,7 +310,7 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
       debugPrint("inputUnlocked");
       debugPrint(e.toString());
       if(!mounted) return;
-      errDialog(context, e.toString());
+      errDialog(e.toString());
     }
   }
 
