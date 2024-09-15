@@ -14,7 +14,12 @@ Future<void> completion(Config config, List<List<String>> message,
   Map<String, dynamic> data = {
     'model': config.model,
     'messages':
-        message.map((e) => {'role': e[0], 'content': e[1]}).toList(),
+        message.asMap().map((index, e) {
+          if (index == 0 && config.model.contains("claude")) {
+            return MapEntry(index, {'role': 'user', 'content': "system instruction:\n${e[1]}"});
+          }
+          return MapEntry(index, {'role': e[0], 'content': e[1]});
+        }).values.toList(),
     'stream': true,
     if (config.temperature != null && double.tryParse(config.temperature!) != null) 
       'temperature': double.parse(config.temperature!),
@@ -41,7 +46,7 @@ Future<void> completion(Config config, List<List<String>> message,
             if (data.data.contains("DONE")) {
               onDone();
             } else if(e is FormatException) {
-              onErr("Unexpected response: \n$data");
+              onErr("Unexpected response: \n${data.data}");
             }
           }
         });
