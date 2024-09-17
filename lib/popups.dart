@@ -160,46 +160,65 @@ void systemPopup(BuildContext context, String msg, Function(String,bool) onEdite
         ),
         TextButton(
           onPressed: () {
-            onEdited(controller.text,false);
-            Navigator.of(context).pop();
-          },
-          child: const Text('确定'),
-        ),
-        TextButton(
-          onPressed: () {
             onEdited(controller.text,true);
             Navigator.of(context).pop();
           },
           child: const Text('确定并提交'),
+        ),
+        TextButton(
+          onPressed: () {
+            onEdited(controller.text,false);
+            Navigator.of(context).pop();
+          },
+          child: const Text('确定'),
         )
       ],
     );
   });
 }
 
-void timePopup(BuildContext context, int oldTime, Function(DateTime) onEdited) {
-  showDatePicker(
+// bool: true for transfer to system instruction, false for not
+void timePopup(BuildContext context, int oldTime, LongPressStartDetails details, Function(bool,DateTime?) onEdited) {
+  final RenderBox overlay = Overlay.of(context).context.findRenderObject() as RenderBox;
+  final RelativeRect position = RelativeRect.fromRect(
+    Rect.fromLTWH(details.globalPosition.dx, details.globalPosition.dy, 0, 0),
+    Offset.zero & overlay.size,
+  );
+  showMenu(
     context: context,
-    initialDate: DateTime.fromMillisecondsSinceEpoch(oldTime),
-    firstDate: DateTime(2021),
-    lastDate: DateTime(2099),
-  ).then((date) {
-    if (date != null) {
-      showTimePicker(
+    position: position,
+    items: [
+      const PopupMenuItem(value: 1, child: Text('编辑')),
+      const PopupMenuItem(value: 2, child: Text('转为系统指令'))
+    ],
+  ).then((value) {
+    if (value == 1) {
+      showDatePicker(
         context: context,
-        initialTime: TimeOfDay.fromDateTime(DateTime.fromMillisecondsSinceEpoch(oldTime)),
-      ).then((time) {
-        if (time != null) {
-          DateTime newTime = DateTime(
-            date.year,
-            date.month,
-            date.day,
-            time.hour,
-            time.minute,
-          );
-          onEdited(newTime);
+        initialDate: DateTime.fromMillisecondsSinceEpoch(oldTime),
+        firstDate: DateTime(2021),
+        lastDate: DateTime(2099),
+      ).then((date) {
+        if (date != null) {
+          showTimePicker(
+            context: context,
+            initialTime: TimeOfDay.fromDateTime(DateTime.fromMillisecondsSinceEpoch(oldTime)),
+          ).then((time) {
+            if (time != null) {
+              DateTime newTime = DateTime(
+                date.year,
+                date.month,
+                date.day,
+                time.hour,
+                time.minute,
+              );
+              onEdited(false, newTime);
+            }
+          });
         }
       });
+    } else if (value == 2) {
+      onEdited(true, null);
     }
   });
 }

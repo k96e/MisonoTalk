@@ -8,7 +8,7 @@ import 'package:flutter/services.dart';
 // type 1:asstant 2:user 3:system 4:timestamp
 class Message {
   String message;
-  final int type;
+ int type;
   static const int assistant = 1;
   static const int user = 2;
   static const int system = 3;
@@ -64,6 +64,15 @@ List<Message> jsonToMsg(String jsonString) {
   return jsonList.map((json) => Message.fromJson(json)).toList();
 }
 
+String timestampToSystemMsg(String timestr) {
+  DateTime t = DateTime.fromMillisecondsSinceEpoch(int.parse(timestr));
+  const weekday = ["", "一", "二", "三", "四", "五", "六", "日"];
+  var result =
+      "${t.year}年${t.month}月${t.day}日星期${weekday[t.weekday]}"
+      "${t.hour.toString().padLeft(2,'0')}:${t.minute.toString().padLeft(2,'0')}";
+  return "下面的对话开始于 $result";
+}
+
 List<List<String>> parseMsg(String prompt, List<Message> messages) {
   List<List<String>> msg = [];
   msg.add(["system",prompt]);
@@ -75,12 +84,8 @@ List<List<String>> parseMsg(String prompt, List<Message> messages) {
     } else if (m.type == Message.system) {
       msg.add(["system",m.message]);
     } else if (m.type == Message.timestamp) {
-      DateTime t = DateTime.fromMillisecondsSinceEpoch(int.parse(m.message));
-      const weekday = ["", "一", "二", "三", "四", "五", "六", "日"];
-      var timestr =
-          "${t.year}年${t.month}月${t.day}日星期${weekday[t.weekday]}"
-          "${t.hour.toString().padLeft(2,'0')}:${t.minute.toString().padLeft(2,'0')}";
-      msg.add(["system","下面的对话开始于 $timestr"]);
+      var timestr = timestampToSystemMsg(m.message);
+      msg.add(["system","下面的对话开始于$timestr"]);
     }
   }
   return msg;

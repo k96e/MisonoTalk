@@ -153,11 +153,18 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
         }
       });
     } else if(messages[index].type == Message.timestamp){
-      timePopup(context, int.parse(messages[index].message), (newTime){
-        debugPrint(newTime.toString());
-        setState(() {
-          messages[index].message = newTime.millisecondsSinceEpoch.toString();
-        });
+      timePopup(context, int.parse(messages[index].message), details, (bool ifTransfer, DateTime? newTime){
+        if(ifTransfer){
+          setState(() {
+            messages[index].type = Message.system;
+            messages[index].message = timestampToSystemMsg(messages[index].message);
+          });
+        } else {
+          debugPrint(newTime.toString());
+          setState(() {
+            messages[index].message = newTime!.millisecondsSinceEpoch.toString();
+          });
+        }
       });
     } else if(messages[index].type == Message.system){
       systemPopup(context, messages[index].message, (String edited,bool isSend){
