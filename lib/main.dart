@@ -10,6 +10,7 @@ import 'history.dart';
 import 'openai.dart';
 import 'storage.dart';
 import 'utils.dart';
+import 'webdav.dart';
 
 
 main() async {
@@ -363,6 +364,10 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
                   child: Text('System'),
                 ),
                 const PopupMenuItem(
+                  value: 'Backup',
+                  child: Text('Backup...'),
+                ),
+                const PopupMenuItem(
                   value: 'History',
                   child: Text('History...'),
                 ),
@@ -409,13 +414,18 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
                       }
                     });
                   });
-                }
-                else if (value == 'Settings') {
+                } else if (value == 'Settings') {
                   Navigator.push(
                       context,
                       MaterialPageRoute(
                           builder: (context) => ConfigPage(updateFunc: updateConfig)));
-                } else if (value == 'History') {
+                } else if (value == 'Backup'){
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => WebdavPage(onRefresh: loadHistory)));
+
+                }else if (value == 'History') {
                   showModalBottomSheet(
                       context: context,
                       showDragHandle: true,

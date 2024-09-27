@@ -152,6 +152,21 @@ Future<void> setPrompt(String prompt) async {
   await prefs.setString("custom_prompt", prompt);
 }
 
+Future<List<String>> getWebdav() async {
+  final SharedPreferences prefs = await SharedPreferences.getInstance();
+  Set<String> keys = prefs.getKeys();
+  if (keys.contains("webdav")) {
+    return prefs.getStringList("webdav") ?? ["","",""];
+  } else {
+    return ["","",""];
+  }
+}
+
+Future<void> setWebdav(String url, String username, String password) async {
+  final SharedPreferences prefs = await SharedPreferences.getInstance();
+  await prefs.setStringList("webdav", [url,username,password]);
+}
+
 Future<void> restoreFromJson(jsonString) async {
   if (jsonString.isEmpty) return;
 
