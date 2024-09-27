@@ -9,8 +9,9 @@ import 'storage.dart';
 import 'utils.dart' show snackBarAlert;
 
 class WebdavPage extends StatefulWidget {
+  final String currentMessages;
   final Function(String) onRefresh;
-  const WebdavPage({super.key, required this.onRefresh});
+  const WebdavPage({super.key, required this.currentMessages,required this.onRefresh});
   @override
   WebdavPageState createState() => WebdavPageState();
 }
@@ -51,23 +52,16 @@ class WebdavPageState extends State<WebdavPage> {
     }
   }
 
-  void backupCurrent() {
-    getTempHistory().then((msg) async {
-      if(msg != null) {
-        try {
-          var client = newClient(urlController.text, user: usernameController.text, password: passwordController.text);
-          Uint8List data = utf8.encode(msg);
-          await client.write("momotalk/temp.json", data);
-          if(!context.mounted) return;
-          snackBarAlert(context, "Backup OK");
-        } catch (e) {
-          errDialog(e.toString());
-        }
-      } else {
-        if(!context.mounted) return;
-        snackBarAlert(context, "No data to backup");
-      }
-    });
+  Future<void> backupCurrent() async {
+    try {
+      var client = newClient(urlController.text, user: usernameController.text, password: passwordController.text);
+      Uint8List data = utf8.encode(widget.currentMessages);
+      await client.write("momotalk/temp.json", data);
+      if(!context.mounted) return;
+      snackBarAlert(context, "Backup OK");
+    } catch (e) {
+      errDialog(e.toString());
+    }
   }
 
   Future<void> restoreCurrent() async {

@@ -423,7 +423,9 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
                   Navigator.push(
                       context,
                       MaterialPageRoute(
-                          builder: (context) => WebdavPage(onRefresh: loadHistory)));
+                          builder: (context) => WebdavPage(
+                            currentMessages: msgListToJson(messages),
+                            onRefresh: loadHistory)));
 
                 }else if (value == 'History') {
                   showModalBottomSheet(
