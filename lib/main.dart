@@ -46,6 +46,7 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
   final fn = FocusNode();
   final textController = TextEditingController();
   final scrollController = ScrollController();
+  static const String studentName = "未花";
   static const String originalMsg = "Sensei你终于来啦！\\我可是个乖乖看家的好孩子哦";
   Config config = Config(name: "", baseUrl: "", apiKey: "", model: "");
   String userMsg = "";
@@ -123,7 +124,7 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
   void onMsgPressed(int index,LongPressStartDetails details){
     HapticFeedback.heavyImpact();
     if(messages[index].type == Message.assistant){
-      assistantPopup(context, messages[index].message, details, (String edited){
+      assistantPopup(context, messages[index].message, details, studentName, (String edited){
         debugPrint("edited: $edited");
         if(edited.isEmpty){
           setState(() {
@@ -386,7 +387,7 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
                 } else if (value == 'Save') {
                   String prompt = await getPrompt();
                   if(!context.mounted) return;
-                  String? value = await namingHistory(context, "", config, parseMsg(prompt, messages));
+                  String? value = await namingHistory(context, "", config, studentName, parseMsg(prompt, messages));
                   if (value != null) {
                     debugPrint(value);
                     addHistory(msgListToJson(messages),value);
@@ -469,7 +470,8 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
                                       },
                                       child: ChatElement(
                                         message: message.message,
-                                        type: message.type
+                                        type: message.type,
+                                        stuName: studentName,
                                       )
                                     )
                                   ],
@@ -481,7 +483,9 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
                                   fn.unfocus();
                                 },
                                 child: ChatElement(
-                                  message: message.message, type: message.type)
+                                  message: message.message, 
+                                  type: message.type,
+                                  stuName: studentName)
                                 );
                             },
                           )))),

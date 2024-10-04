@@ -5,7 +5,8 @@ import 'utils.dart' show Message;
 class ChatElement extends StatelessWidget {
   final String message;
   final int type;
-  const ChatElement({super.key, required this.message, required this.type});
+  final String stuName;
+  const ChatElement({super.key, required this.message, required this.type, required this.stuName});
 
   @override
   Widget build(BuildContext context) {
@@ -13,7 +14,7 @@ class ChatElement extends StatelessWidget {
       return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           for(var m in message.split("\\\\")) 
             if(m.isNotEmpty) 
-              ChatBubbleLayoutLeft(name: "未花", messages: m.split("\\")),
+              ChatBubbleLayoutLeft(name: stuName, messages: m.split("\\")),
           const SizedBox(height: 10),
         ]);
     } else if (type == Message.user) {

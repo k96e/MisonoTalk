@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'notifications.dart';
 import 'dart:async' show Timer;
 
-void assistantPopup(BuildContext context, String msg, LongPressStartDetails details, Function(String) onEdited) {
+void assistantPopup(BuildContext context, String msg, LongPressStartDetails details,
+                    String stuName, Function(String) onEdited) {
   final RenderBox overlay = Overlay.of(context).context.findRenderObject() as RenderBox;
   final RelativeRect position = RelativeRect.fromRect(
     Rect.fromLTWH(details.globalPosition.dx, details.globalPosition.dy, 0, 0),
@@ -42,7 +43,7 @@ void assistantPopup(BuildContext context, String msg, LongPressStartDetails deta
                   Timer.periodic(const Duration(milliseconds: 500), (timer) {
                     if (index < msgs.length) {
                       if (msgs[index].isNotEmpty) {
-                        notification.showNotification(title: '未花', body: msgs[index]);
+                        notification.showNotification(title: stuName, body: msgs[index]);
                       }
                       index++;
                     } else {
