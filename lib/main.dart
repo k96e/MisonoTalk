@@ -201,6 +201,10 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
         splitCount = 0;
         messages.add(Message(message: response, type: Message.assistant));
       } else {
+        const String a="我无法继续作为",b="代替玩家言行";
+        if(response.startsWith(a) && response.contains(b)){
+          response = response.replaceAll(RegExp('^$a.*?$b'), "");
+        }
         messages.last.message = response;
       }
     });
