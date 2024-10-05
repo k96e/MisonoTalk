@@ -138,13 +138,21 @@ Future<String> convertToJson() async {
   return jsonEncode(allPrefs);
 }
 
-Future<String> getPrompt({bool isDefault=false}) async {
+Future<String> getPrompt({bool isDefault=false,bool isRaw=false}) async {
   final SharedPreferences prefs = await SharedPreferences.getInstance();
   String? prompt = prefs.getString("custom_prompt");
   if (prompt == null || prompt.length < 200 || isDefault) {
     prompt = await rootBundle.loadString('assets/prompt.txt');
   }
-  return prompt;
+  if (isRaw) {
+    return prompt;
+  }
+  prompt = prompt.replaceFirst("enabled?t", "");
+  int ind = prompt.indexOf("enabled?f");
+  if (ind != -1) {
+    prompt = prompt.substring(ind+"enabled?f".length);
+  }
+  return prompt.trimLeft();
 }
 
 Future<void> setPrompt(String prompt) async {

@@ -13,7 +13,7 @@ class PromptEditorState extends State<PromptEditor> {
   @override
   void initState() {
     super.initState();
-    getPrompt().then((String value) {
+    getPrompt(isRaw: true).then((String value) {
       controller.text = value;
     });
   }
@@ -32,7 +32,7 @@ class PromptEditorState extends State<PromptEditor> {
             children: [
               ElevatedButton(
                 onPressed: () async{
-                  controller.text = await getPrompt(isDefault: true);
+                  controller.text = await getPrompt(isDefault: true, isRaw: true);
                 },
                 child: const Text('恢复'),
               ),
