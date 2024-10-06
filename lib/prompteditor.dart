@@ -46,6 +46,9 @@ class PromptEditorState extends State<PromptEditor> {
               ),
             ],
           ),
+          const Text("（可通过添加'prompt_split'标记分隔ExternalPrompt）",
+            style: TextStyle(fontSize: 12),
+          ),
           Expanded(child:
           Padding(padding: const EdgeInsets.all(8.0),
             child: 
