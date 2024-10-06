@@ -51,6 +51,7 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
   Config config = Config(name: "", baseUrl: "", apiKey: "", model: "");
   String userMsg = "";
   int splitCount = 0;
+  bool externalPrompt = false;
   bool inputLock = false;
   bool keyboardOn = false;
   List<Message> messages = [
@@ -289,7 +290,7 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
       inputLock = true;
       debugPrint("inputLocked");
     });
-    List<List<String>> msg = parseMsg(await getPrompt(), messages);
+    List<List<String>> msg = parseMsg(await getPrompt(withExternal: externalPrompt), messages);
     logMsg(msg.sublist(1));
     try {
       String response = "";
@@ -368,6 +369,10 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
                   value: 'System',
                   child: Text('System'),
                 ),
+                PopupMenuItem(
+                  value: 'ExtPrompt',
+                  child: Text('ExtPrompt ${externalPrompt?"√":"×"}'),
+                ),
                 const PopupMenuItem(
                   value: 'Backup',
                   child: Text('Backup...'),
@@ -385,7 +390,7 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
                 if (value == 'Clear') {
                   clearMsg();
                 } else if (value == 'Save') {
-                  String prompt = await getPrompt();
+                  String prompt = await getPrompt(withExternal: externalPrompt);
                   if(!context.mounted) return;
                   String? value = await namingHistory(context, "", config, studentName, parseMsg(prompt, messages));
                   if (value != null) {
@@ -438,6 +443,11 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
                       showDragHandle: true,
                       scrollControlDisabledMaxHeightRatio: 0.9,
                       builder: (BuildContext context) => HistoryPage(updateFunc: loadHistory));
+                }else if (value == 'ExtPrompt') {
+                  setState(() {
+                    externalPrompt = !externalPrompt;
+                  });
+                  snackBarAlert(context, "ExtPrompt ${externalPrompt?"on":"off"}");
                 }
               },
             ),

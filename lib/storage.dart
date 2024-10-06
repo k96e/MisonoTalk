@@ -138,7 +138,7 @@ Future<String> convertToJson() async {
   return jsonEncode(allPrefs);
 }
 
-Future<String> getPrompt({bool isDefault=false,bool isRaw=false}) async {
+Future<String> getPrompt({bool isDefault=false,bool isRaw=false,bool withExternal=false}) async {
   final SharedPreferences prefs = await SharedPreferences.getInstance();
   String? prompt = prefs.getString("custom_prompt");
   if (prompt == null || prompt.length < 200 || isDefault) {
@@ -147,10 +147,13 @@ Future<String> getPrompt({bool isDefault=false,bool isRaw=false}) async {
   if (isRaw) {
     return prompt;
   }
-  prompt = prompt.replaceFirst("enabled?t", "");
-  int ind = prompt.indexOf("enabled?f");
+  String flag = "prompt_split";
+  if (withExternal) {
+    return prompt.replaceFirst(flag, "");
+  }
+  int ind = prompt.indexOf(flag);
   if (ind != -1) {
-    prompt = prompt.substring(ind+"enabled?f".length);
+    prompt = prompt.substring(ind+flag.length);
   }
   return prompt.trimLeft();
 }

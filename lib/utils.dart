@@ -112,6 +112,7 @@ String randomizeBackslashes(String resp) {
 
 void snackBarAlert(BuildContext context, String msg) {
   if(!context.mounted) return;
+  ScaffoldMessenger.of(context).hideCurrentSnackBar();
   ScaffoldMessenger.of(context).showSnackBar(
     SnackBar(
       behavior: SnackBarBehavior.floating,
