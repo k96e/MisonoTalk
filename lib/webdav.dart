@@ -85,6 +85,7 @@ class WebdavPageState extends State<WebdavPage> {
         widget.onRefresh(msg);
         if(!context.mounted) return;
         snackBarAlert(context, "Restore OK");
+        Navigator.of(context).pop();
       });
     } catch (e) {
       errDialog(e.toString());

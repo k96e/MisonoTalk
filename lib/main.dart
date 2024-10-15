@@ -128,6 +128,27 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
       assistantPopup(context, messages[index].message, details, studentName, (String edited){
         debugPrint("edited: $edited");
         edited = edited.replaceAll("\n", "\\");
+        if(edited=="FORMAT"){
+          String msg = messages[index].message.replaceAll(":", "：");
+          String var1="$studentName：",var2="Sensei：";
+          List<String> msgs = splitString(msg, [var1,var2]);
+          debugPrint("msgs: $msgs");
+          setState(() {
+            messages.removeAt(index);
+            for(int i=0;i<msgs.length;i++){
+              if(msgs[i].startsWith(var1)){
+                messages.insert(index+i, Message(
+                  message: msgs[i].substring(var1.length), 
+                  type: Message.assistant));
+              } else if(msgs[i].startsWith(var2)){
+                messages.insert(index+i, Message(
+                  message: msgs[i].substring(var2.length).replaceAll("\\\\", "\\"), 
+                  type: Message.user));
+              }
+            }
+          });
+          return;
+        }
         if(edited.isEmpty){
           setState(() {
             messages.removeRange(index, messages.length);

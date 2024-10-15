@@ -143,6 +143,9 @@ class ChatBubbleLayoutRight extends StatelessWidget {
           ...messages.asMap().entries.map((entry) {
             int idx = entry.key;
             String message = entry.value;
+            if (message.isEmpty) {
+              return const SizedBox.shrink();
+            }
             return Padding(
               padding: const EdgeInsets.only(bottom: 4),
               child: CustomPaint(

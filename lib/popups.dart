@@ -10,12 +10,15 @@ void assistantPopup(BuildContext context, String msg, LongPressStartDetails deta
     Offset.zero & overlay.size,
   );
   TextEditingController controller = TextEditingController(text: msg);
+  msg = msg.replaceAll(":", "：");
   showMenu(
     context: context,
     position: position,
     items: [
       const PopupMenuItem(value: 2, child: Text('编辑')),
-      const PopupMenuItem(value: 1, child: Text('创建通知'))
+      const PopupMenuItem(value: 1, child: Text('创建通知')),
+      if (msg.split("$stuName：").length > 3) 
+        const PopupMenuItem(value: 3, child: Text('格式化')),
     ],
   ).then((value) {
     if (value == 1) {
@@ -84,6 +87,8 @@ void assistantPopup(BuildContext context, String msg, LongPressStartDetails deta
           ],
         );
       });
+    } else if (value == 3) {
+      onEdited("FORMAT");
     }
   });
 }

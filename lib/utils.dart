@@ -110,6 +110,33 @@ String randomizeBackslashes(String resp) {
   return result.toString();
 }
 
+List<String> splitString(String input, List<String> patterns) {
+  String var1 = patterns[0], var2 = patterns[1];
+    List<String> result = [];
+  int i = 0;
+  while (i < input.length) {
+    if (input.startsWith(var1, i)) {
+      int nextIndex = input.indexOf(var2, i);
+      if (nextIndex == -1) {
+        result.add(input.substring(i));
+        break;
+      }
+      result.add(input.substring(i, nextIndex));
+      i = nextIndex;
+    }
+    else if (input.startsWith(var2, i)) {
+      int nextIndex = input.indexOf(var1, i);
+      if (nextIndex == -1) {
+        result.add(input.substring(i));
+        break;
+      }
+      result.add(input.substring(i, nextIndex));
+      i = nextIndex;
+    }
+  }
+  return result;
+}
+
 void snackBarAlert(BuildContext context, String msg) {
   if(!context.mounted) return;
   ScaffoldMessenger.of(context).hideCurrentSnackBar();
