@@ -70,9 +70,9 @@ void assistantPopup(BuildContext context, String msg, LongPressStartDetails deta
           actions: [
             TextButton(
               onPressed: () {
-                Navigator.of(context).pop();
+                controller.clear();
               },
-              child: const Text('取消'),
+              child: const Text('清空'),
             ),
             TextButton(
               onPressed: () {
@@ -115,9 +115,9 @@ void userPopup(BuildContext context, String msg, LongPressStartDetails details, 
           actions: [
             TextButton(
               onPressed: () {
-                Navigator.of(context).pop();
+                controller.clear();
               },
-              child: const Text('取消'),
+              child: const Text('清空'),
             ),
             TextButton(
               onPressed: () {
@@ -155,9 +155,9 @@ void systemPopup(BuildContext context, String msg, Function(String,bool) onEdite
       actions: [
         TextButton(
           onPressed: () {
-            Navigator.of(context).pop();
+            controller.clear();
           },
-          child: const Text('取消'),
+          child: const Text('清空'),
         ),
         TextButton(
           onPressed: () {
