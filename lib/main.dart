@@ -127,6 +127,7 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
     if(messages[index].type == Message.assistant){
       assistantPopup(context, messages[index].message, details, studentName, (String edited){
         debugPrint("edited: $edited");
+        edited = edited.replaceAll("\n", "\\");
         if(edited.isEmpty){
           setState(() {
             messages.removeRange(index, messages.length);
@@ -140,6 +141,7 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
     } else if(messages[index].type == Message.user){
       userPopup(context, messages[index].message, details, (String edited,bool isResend){
         debugPrint("edited: $edited");
+        edited = edited.replaceAll("\n", "\\");
         if(edited.isEmpty){
           setState(() {
             messages.removeRange(index, messages.length);
