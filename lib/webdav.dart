@@ -281,19 +281,16 @@ class WebdavPageState extends State<WebdavPage> {
                   borderRadius: BorderRadius.circular(12.0),
                 ),
                 child: messageRecords.isEmpty ? const Center(child: Text('无记录')) :
-                SingleChildScrollView(
-                  child: ListView.builder(
-                    shrinkWrap: true,
-                    itemCount: messageRecords.length,
-                    itemBuilder: (BuildContext context, int index) {
-                      return Card(
-                        child: ListTile(
-                          title: Text(messageRecords[index][0]),
-                          onTap: () => loadItem(index),
-                        )
-                      );
-                    },
-                  ),
+                ListView.builder(
+                  itemCount: messageRecords.length,
+                  itemBuilder: (BuildContext context, int index) {
+                    return Card(
+                      child: ListTile(
+                        title: Text(messageRecords[index][0]),
+                        onTap: () => loadItem(index),
+                      )
+                    );
+                  },
                 ),
               ),
             )
