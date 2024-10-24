@@ -11,6 +11,7 @@ import 'openai.dart';
 import 'storage.dart';
 import 'utils.dart';
 import 'webdav.dart';
+import 'msgeditor.dart';
 
 
 main() async {
@@ -405,6 +406,10 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
                   child: Text('History...'),
                 ),
                 const PopupMenuItem(
+                  value: 'Msgs',
+                  child: Text('Msgs...'),
+                ),
+                const PopupMenuItem(
                   value: 'Settings',
                   child: Text('Settings...'),
                 ),
@@ -471,6 +476,13 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
                     externalPrompt = !externalPrompt;
                   });
                   snackBarAlert(context, "ExtPrompt ${externalPrompt?"on":"off"}");
+                }else if (value == 'Msgs') {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => MsgEditor(msgs: messages)
+                    )
+                  ).then((msgs){setState(() {});});
                 }
               },
             ),
