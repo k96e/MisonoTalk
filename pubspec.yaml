@@ -38,6 +38,9 @@ dependencies:
   async: ^2.8.1
   eventflux: ^2.2.0
   cupertino_icons: ^1.0.6
+  dio: ^5.7.0
+  uuid: ^4.5.1
+  transparent_image: ^2.0.1
   shared_preferences: ^2.2.3
   flutter_local_notifications: ^17.2.1+2
   permission_handler: ^11.3.1

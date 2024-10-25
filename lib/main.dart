@@ -12,6 +12,7 @@ import 'storage.dart';
 import 'utils.dart';
 import 'webdav.dart';
 import 'msgeditor.dart';
+import 'aidraw.dart';
 
 
 main() async {
@@ -402,6 +403,10 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
                   child: Text('Backup...'),
                 ),
                 const PopupMenuItem(
+                  value: 'Draw',
+                  child: Text('AiDraw...'),
+                ),
+                const PopupMenuItem(
                   value: 'History',
                   child: Text('History...'),
                 ),
@@ -483,6 +488,13 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
                       builder: (context) => MsgEditor(msgs: messages)
                     )
                   ).then((msgs){setState(() {});});
+                }else if (value == 'Draw') {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const AiDraw()
+                    )
+                  );
                 }
               },
             ),
