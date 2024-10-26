@@ -211,6 +211,16 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
           }
         }
       });
+    } else if(messages[index].type == Message.image){
+      imagePopup(context, details, (bool edited){
+        if(edited){
+          snackBarAlert(context, "saved (maybe)");
+        } else {
+          setState(() {
+            messages.removeAt(index);
+          });
+        }
+      });
     }
   }
 
@@ -499,7 +509,16 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
                     MaterialPageRoute(
                       builder: (context) => AiDraw(msg:msg, config: config)
                     )
-                  );
+                  ).then((imageUrl){
+                    if(imageUrl!=null){
+                      setState(() {
+                        messages.add(Message(message: imageUrl, type: Message.image));
+                      });
+                      WidgetsBinding.instance.addPostFrameCallback((_) {
+                        setScrollPercent(1.0);
+                      });
+                    }
+                  });
                 }
               },
             ),

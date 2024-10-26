@@ -20,6 +20,7 @@ class AiDrawState extends State<AiDraw>{
   TextEditingController promptController = TextEditingController(text: '');
   TextEditingController apiController = TextEditingController();
   String? imageUrl;
+  String? sessionHash;
   bool gptBusy = false, sdBusy = false;
 
   Future<void> buildPrompt() async {
@@ -76,36 +77,33 @@ class AiDrawState extends State<AiDraw>{
       url += '/';
     }
     final dio = Dio(BaseOptions(baseUrl: url));
-    final String sessionHash = const Uuid().v4();
-    logController.text = '$sessionHash\n${logController.text}';
-    // Load model request
-    await dio.post(
-      "/queue/join",
-      data: {
-        "data": ["yodayo-ai/kivotos-xl-2.0", "None", "txt2img"],
-        "fn_index": 12,
-        "session_hash": sessionHash,
-      },
-    );
-
-    // Load model queue
-    final Response<ResponseBody> loadModelQueue = await dio.get<ResponseBody>(
-      "/queue/data",
-      queryParameters: {"session_hash": sessionHash},
-      options: Options(responseType: ResponseType.stream),
-    );
-
-    // Process streaming data
-
-    await for (var chunk in loadModelQueue.data!.stream) {
-      logController.text = utf8.decode(chunk) + logController.text;
+    if(sessionHash==null){
+      sessionHash = const Uuid().v4();
+      logController.text = '$sessionHash\n${logController.text}';
+      await dio.post(
+        "/queue/join",
+        data: {
+          "data": ["yodayo-ai/kivotos-xl-2.0", "None", "txt2img"],
+          "fn_index": 12,
+          "session_hash": sessionHash,
+        },
+      );
+      final Response<ResponseBody> loadModelQueue = await dio.get<ResponseBody>(
+        "/queue/data",
+        queryParameters: {"session_hash": sessionHash},
+        options: Options(responseType: ResponseType.stream),
+      );
+      await for (var chunk in loadModelQueue.data!.stream) {
+        logController.text = utf8.decode(chunk) + logController.text;
+      }
+    } else {
+      logController.text = 'session already exists\nsession hash:$sessionHash';
     }
-
     await dio.post(
       "/queue/join",
       data: {
         "data": [
-          "1girl, mika \\(blue archive\\), misono mika, blue archive, mignon, halo, pink halo, pink hair, yellow eyes, angel, angel wings, feathered wings, white wings, ${promptController.text}, masterpiece, best quality, newest, absurdres, highres, sensitive",
+          "1girl, mika \\(blue archive\\), misono mika, blue archive, halo, pink halo, pink hair, yellow eyes, angel, angel wings, feathered wings, white wings, ${promptController.text}, masterpiece, best quality, newest, absurdres, highres, sensitive",
           "nsfw, (low quality, worst quality:1.2), very displeasing, 3d, watermark, signatrue, ugly, poorly drawn",
           1,
           30,
@@ -232,6 +230,7 @@ class AiDrawState extends State<AiDraw>{
         lastUrl = match.group(1)!;
       }
       if (data.contains('close_stream')) {
+        if(lastUrl.isEmpty) return;
         if(!mounted) return;
         setState(() {
           imageUrl = lastUrl;
@@ -267,6 +266,7 @@ class AiDrawState extends State<AiDraw>{
               decoration: const InputDecoration(labelText: "api url"),
               onSubmitted: (value) => setDrawUrl(value),
             ),
+            const SizedBox(height: 8),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
@@ -288,11 +288,17 @@ class AiDrawState extends State<AiDraw>{
                   },
                   child: Text(sdBusy?'Drawing':'Draw')
                 ),
+                TextButton(onPressed: (){
+                    if(imageUrl == null) return;
+                    Navigator.pop(context, imageUrl);
+                  },
+                  child: const Text('Done')
+                ),
               ]
             ),
             TextField(
               controller: promptController,
-              decoration: const InputDecoration(hintText: 'Prompt'),
+              decoration: const InputDecoration(labelText: 'Prompt'),
             ),
             Expanded(
               child: imageUrl == null

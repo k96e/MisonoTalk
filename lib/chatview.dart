@@ -32,7 +32,9 @@ class ChatElement extends StatelessWidget {
       return centerBubble(timestr);
     } else if (type == Message.system) {
       return centerBubble("System Instruction Here");
-    } 
+    } else if (type == Message.image) {
+      return ChatBubbleImage(name: stuName, imageUrl: message);
+    }
     else {
       return const SizedBox.shrink();
     }
@@ -116,6 +118,64 @@ class ChatBubbleLayoutLeft extends StatelessWidget {
                   ),
                 );
               }),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class ChatBubbleImage extends StatelessWidget {
+  final String name;
+  final String imageUrl;
+
+  const ChatBubbleImage({
+    super.key,
+    required this.name,
+    required this.imageUrl,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Padding(
+            padding: EdgeInsets.only(top: 7),
+            child: CircleAvatar(
+              backgroundImage: AssetImage("assets/head.webp"),
+              radius: 25,
+            )),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                name,
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+              ),
+              const SizedBox(height: 4),
+              Padding(
+                padding: const EdgeInsets.only(bottom: 4),
+                child: Container(
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.grey),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(4),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: FractionallySizedBox(
+                        widthFactor: 0.8,
+                        child: Image.network(imageUrl),
+                      )
+                    )
+                  ),
+                ),
+              )
             ],
           ),
         ),

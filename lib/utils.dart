@@ -8,11 +8,12 @@ import 'package:flutter/services.dart';
 // type 1:asstant 2:user 3:system 4:timestamp
 class Message {
   String message;
- int type;
+  int type;
   static const int assistant = 1;
   static const int user = 2;
   static const int system = 3;
   static const int timestamp = 4;
+  static const int image = 5;
 
   Message({required this.message, required this.type});
 
