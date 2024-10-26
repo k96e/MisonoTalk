@@ -178,6 +178,16 @@ Future<void> setWebdav(String url, String username, String password) async {
   await prefs.setStringList("webdav", [url,username,password]);
 }
 
+Future<void> setDrawUrl(String url) async {
+  final SharedPreferences prefs = await SharedPreferences.getInstance();
+  await prefs.setString("draw_url", url);
+}
+
+Future<String?> getDrawUrl() async {
+  final SharedPreferences prefs = await SharedPreferences.getInstance();
+  return prefs.getString("draw_url");
+}
+
 Future<void> restoreFromJson(jsonString) async {
   if (jsonString.isEmpty) return;
 

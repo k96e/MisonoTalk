@@ -489,10 +489,15 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
                     )
                   ).then((msgs){setState(() {});});
                 }else if (value == 'Draw') {
+                  if(messages.last.type != Message.assistant || messages.length<2){
+                    snackBarAlert(context, "No message to draw");
+                    return;
+                  }
+                  String msg = messages.last.message;
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => const AiDraw()
+                      builder: (context) => AiDraw(msg:msg, config: config)
                     )
                   );
                 }
