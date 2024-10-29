@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show HapticFeedback;
+import 'package:url_launcher/url_launcher_string.dart' show launchUrlString;
 import 'dart:io' show Platform;
 import 'chatview.dart';
 import 'configpage.dart';
@@ -214,7 +215,7 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
     } else if(messages[index].type == Message.image){
       imagePopup(context, details, (bool edited){
         if(edited){
-          snackBarAlert(context, "saved (maybe)");
+          launchUrlString(messages[index].message);
         } else {
           setState(() {
             messages.removeAt(index);
@@ -222,6 +223,79 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
         }
       });
     }
+  }
+
+  void sdWorkflow() async {
+    bool isBuild = false;
+    TextEditingController controller = TextEditingController();
+    showDialog(context: context, builder: (context){
+      return StatefulBuilder(builder: (context, setState) {
+        return AlertDialog(
+          title: const Text("AiDraw"),
+          content: TextField(
+            maxLines: null,
+            minLines: 1,
+            controller: controller,
+            decoration: const InputDecoration(
+              hintText: "Build prompt?",
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('Skip'),
+            ),
+            TextButton(
+              onPressed: () async {
+                if(isBuild){
+                  Navigator.of(context).pop(controller.text);
+                } else {
+                  controller.text = "Building...";
+                  String prompt = "";
+                  List<List<String>> msg = parseMsg(await getPrompt(withExternal: externalPrompt), messages);
+                  msg.add(["user", "system instruction:暂停角色扮演，根据上下文，详细描述$studentName给Sensei发送的图片内容或是当前Sensei所看到的场景"]);
+                  completion(config, msg, (resp){
+                    const String a="我无法继续作为",b="代替玩家言行";
+                    prompt += resp;
+                    if(prompt.startsWith(a) && prompt.contains(b)){
+                      prompt = prompt.replaceAll(RegExp('^$a.*?$b'), "");
+                    }
+                    controller.text = prompt;
+                  }, (){
+                    debugPrint("done.");
+                    setState(() {
+                      isBuild = true;
+                    });
+                  }, (err){
+                    errDialog(err.toString(),canRetry: false);
+                  });
+                }
+              },
+              child: Text(isBuild? 'Done':'Build'),
+            ),
+          ],
+        );
+      });
+    }).then((res){
+      debugPrint("res: $res");
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => AiDraw(msg:res, config: config)
+        )
+      ).then((imageUrl){
+        if(imageUrl!=null){
+          setState(() {
+            messages.add(Message(message: imageUrl, type: Message.image));
+          });
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            setScrollPercent(1.0);
+          });
+        }
+      });
+    });
   }
 
   void loadHistory(String msg) {
@@ -269,7 +343,7 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
     debugPrint("model: ${config.model}");
   }
 
-  void errDialog(String content){
+  void errDialog(String content,{bool canRetry=true}){
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -282,7 +356,7 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
             },
             child: const Text('确定'),
           ),
-          TextButton(
+          if(canRetry) TextButton(
             onPressed: () {
               Navigator.of(context).pop();
               sendMsg(true,forceSend: true);
@@ -499,26 +573,7 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
                     )
                   ).then((msgs){setState(() {});});
                 }else if (value == 'Draw') {
-                  if(messages.last.type != Message.assistant || messages.length<2){
-                    snackBarAlert(context, "No message to draw");
-                    return;
-                  }
-                  String msg = messages.last.message;
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => AiDraw(msg:msg, config: config)
-                    )
-                  ).then((imageUrl){
-                    if(imageUrl!=null){
-                      setState(() {
-                        messages.add(Message(message: imageUrl, type: Message.image));
-                      });
-                      WidgetsBinding.instance.addPostFrameCallback((_) {
-                        setScrollPercent(1.0);
-                      });
-                    }
-                  });
+                  sdWorkflow();
                 }
               },
             ),
