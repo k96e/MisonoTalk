@@ -55,6 +55,20 @@ class Config {
   }
 }
 
+class SdConfig {
+  String prompt;
+  String negativePrompt;
+  String model;
+  String sampler;
+  int? width;
+  int? height;
+  int? steps;
+  int? cfg;
+
+  SdConfig({required this.prompt, required this.negativePrompt, required this.model, 
+    required this.sampler, this.width, this.height, this.steps, this.cfg});
+}
+
 String msgListToJson(List<Message> messages) {
   List<Map<String, dynamic>> jsonList = messages.map((message) => message.toJson()).toList();
   return jsonEncode(jsonList);

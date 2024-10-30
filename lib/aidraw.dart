@@ -5,7 +5,7 @@ import 'package:uuid/uuid.dart';
 import 'dart:convert';
 import 'utils.dart';
 import 'openai.dart';
-import 'storage.dart' show setDrawUrl, getDrawUrl;
+import 'storage.dart' show setDrawUrl, getDrawUrl, getSdConfig, setSdConfig;
 
 class AiDraw extends StatefulWidget {
   final String? msg;
@@ -20,9 +20,11 @@ class AiDrawState extends State<AiDraw>{
   TextEditingController logController = TextEditingController(text: '');
   TextEditingController promptController = TextEditingController(text: '');
   TextEditingController apiController = TextEditingController();
+  String lastModel = "";
   String? imageUrl;
   String? sessionHash;
   bool gptBusy = false, sdBusy = false, showLog = false;
+  late SdConfig sdConfig;
 
   Future<void> buildPrompt() async {
     if(widget.msg == null) {
@@ -84,13 +86,14 @@ class AiDrawState extends State<AiDraw>{
       url += '/';
     }
     final dio = Dio(BaseOptions(baseUrl: url));
-    if(sessionHash==null){
+    if(sessionHash==null || lastModel != sdConfig.model) {
       sessionHash = const Uuid().v4();
       logController.text = '$sessionHash\n${logController.text}';
+      logController.text = 'Loading model ${sdConfig.model} ...\n${logController.text}';
       await dio.post(
         "/queue/join",
         data: {
-          "data": ["John6666/noobai-xl-nai-xl-epsilonpred05version-sdxl", "None", "txt2img"],
+          "data": [sdConfig.model, "None", "txt2img"],
           "fn_index": 12,
           "session_hash": sessionHash,
         },
@@ -106,12 +109,17 @@ class AiDrawState extends State<AiDraw>{
     } else {
       logController.text = 'session already exists\nsession hash:$sessionHash';
     }
+    lastModel = sdConfig.model;
+    logController.text = 'Drawing...\n${logController.text}';
+    if(!sdConfig.prompt.contains("VERB")){
+      sdConfig.prompt+= ", VERB";
+    }
     await dio.post(
       "/queue/join",
       data: {
         "data": [
-          "1girl, mika \\(blue archive\\), misono mika, blue archive, halo, pink halo, pink hair, yellow eyes, angel, angel wings, feathered wings, white wings, ${promptController.text}, masterpiece, best quality, newest, absurdres, highres, sensitive",
-          "nsfw, (low quality, worst quality:1.2), very displeasing, 3d, watermark, signatrue, ugly, poorly drawn",
+          sdConfig.prompt.replaceAll("VERB", promptController.text),
+          sdConfig.negativePrompt,
           1,
           30,
           7,
@@ -127,10 +135,10 @@ class AiDrawState extends State<AiDraw>{
           0.33,
           null,
           0.33,
-          "DPM++ 2M",
-          1600,
-          1024,
-          "John6666/noobai-xl-nai-xl-epsilonpred05version-sdxl",
+          sdConfig.sampler,
+          sdConfig.height??1600,
+          sdConfig.width??1024,
+          sdConfig.model,
           null,//"vaes/sdxl_vae-fp16fix-c-1.1-b-0.5.safetensors",
           "txt2img",
           null,
@@ -248,6 +256,100 @@ class AiDrawState extends State<AiDraw>{
     }
   }
 
+  Widget sdConfigDialog(BuildContext context){
+    TextEditingController sdPrompt = TextEditingController(text:sdConfig.prompt);
+    TextEditingController sdNegative = TextEditingController(text:sdConfig.negativePrompt);
+    TextEditingController sdModel = TextEditingController(text:sdConfig.model);
+    TextEditingController sdSampler = TextEditingController(text:sdConfig.sampler);
+    TextEditingController sdWidth = TextEditingController(text:sdConfig.width.toString());
+    TextEditingController sdHeight = TextEditingController(text:sdConfig.height.toString());
+    TextEditingController sdStep = TextEditingController(text:sdConfig.steps.toString());
+    TextEditingController sdCFG = TextEditingController(text:sdConfig.cfg.toString());
+    return AlertDialog(
+      title: const Text('Config'),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Text("add 'VERB' tag to place built prompt"),
+          TextField(
+            controller: sdPrompt,
+            decoration: const InputDecoration(labelText: "Positive Prompt"),
+          ),
+          TextField(
+            controller: sdNegative,
+            decoration: const InputDecoration(labelText: "Negative Prompt"),
+          ),
+          TextField(
+            controller: sdModel,
+            decoration: const InputDecoration(labelText: "Model"),
+          ),
+          TextField(
+            controller: sdSampler,
+            decoration: const InputDecoration(labelText: "Sampler"),
+          ),
+          Row(children: [
+            Expanded(
+              child: TextField(
+                controller: sdWidth,
+                inputFormatters: [DecimalTextInputFormatter()],
+                decoration: const InputDecoration(labelText: "Width"),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: TextField(
+                controller: sdHeight,
+                inputFormatters: [DecimalTextInputFormatter()],
+                decoration: const InputDecoration(labelText: "Height"),
+              ),
+            ),
+          ]),
+          Row(children: [
+            Expanded(
+              child: TextField(
+                controller: sdStep,
+                inputFormatters: [DecimalTextInputFormatter()],
+                decoration: const InputDecoration(labelText: "Steps"),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: TextField(
+                controller: sdCFG,
+                decoration: const InputDecoration(labelText: "CFG Scale"),
+              ),
+            ),
+          ]),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () {
+            if(int.parse(sdWidth.text)%8!=0){
+              sdWidth.text = (int.parse(sdWidth.text)~/8*8).toString();
+            }
+            if(int.parse(sdHeight.text)%8!=0){
+              sdHeight.text = (int.parse(sdHeight.text)~/8*8).toString();
+            }
+            sdConfig = SdConfig(
+              prompt: sdPrompt.text,
+              negativePrompt: sdNegative.text,
+              model: sdModel.text,
+              sampler: sdSampler.text,
+              width: int.parse(sdWidth.text),
+              height: int.parse(sdHeight.text),
+              steps: int.parse(sdStep.text),
+              cfg: int.parse(sdCFG.text),
+            );
+            setSdConfig(sdConfig);
+            Navigator.of(context).pop();
+          },
+          child: const Text('OK')
+        )
+      ],
+    );
+  }
+
   @override
   void initState() {
     super.initState();
@@ -258,6 +360,25 @@ class AiDrawState extends State<AiDraw>{
     if(widget.msg != null) {
       buildPrompt();
     }
+    getSdConfig().then((memConfig) {
+      if(memConfig.prompt.isEmpty) {
+        memConfig.prompt = '1girl, mika (blue archive), misono mika, blue archive, halo, pink halo, pink hair, yellow eyes, angel, angel wings, feathered wings, white wings, VERB, masterpiece, best quality, newest, absurdres, highres, sensitive';
+      }
+      if(memConfig.negativePrompt.isEmpty) {
+        memConfig.negativePrompt = 'nsfw, (low quality, worst quality:1.2), very displeasing, 3d, watermark, signatrue, ugly, poorly drawn';
+      }
+      if(memConfig.model.isEmpty) {
+        memConfig.model = 'John6666/noobai-xl-nai-xl-epsilonpred05version-sdxl';
+      }
+      if(memConfig.sampler.isEmpty) {
+        memConfig.sampler = 'DPM++ 2M';
+      }
+      memConfig.width ??= 1024;
+      memConfig.height ??= 1600;
+      memConfig.steps ??= 30;
+      memConfig.cfg ??= 7;
+      sdConfig = memConfig;
+    });
   }
 
   @override
@@ -296,6 +417,12 @@ class AiDrawState extends State<AiDraw>{
                 ),
                 TextButton(
                   onPressed: () {
+                    showDialog(context: context, builder: sdConfigDialog);
+                  },
+                  child: const Text("Config"),
+                ),
+                TextButton(
+                  onPressed: () {
                     if(sdBusy) return;
                     try{
                       makeRequest();
@@ -304,11 +431,6 @@ class AiDrawState extends State<AiDraw>{
                     }
                   },
                   child: Text(sdBusy?'Drawing':'Draw')
-                ),
-                if(imageUrl != null) TextButton(onPressed: (){
-                    launchUrlString(imageUrl!);
-                  },
-                  child: const Text('Save')
                 ),
                 if(imageUrl != null) TextButton(
                   onPressed: (){
@@ -324,28 +446,34 @@ class AiDrawState extends State<AiDraw>{
             ),
             Expanded(
               child: (imageUrl == null) || showLog
-                  ? TextField(
-                      controller: logController,
-                      maxLines: null,
-                      readOnly: true,
-                      decoration: const InputDecoration(border: InputBorder.none),
-                      expands: true,
-                    )
-                  : Image.network(imageUrl!,
-                    loadingBuilder: (context, child, loadingProgress) {
-                      if (loadingProgress == null) {
-                        return child;
-                      } else {
-                        return Center(
-                          child: CircularProgressIndicator(
-                            value: loadingProgress.expectedTotalBytes != null
-                                ? loadingProgress.cumulativeBytesLoaded /
-                                    loadingProgress.expectedTotalBytes!
-                                : null,
-                          ),
-                        );
-                      }
-                    },)
+                ? TextField(
+                    controller: logController,
+                    maxLines: null,
+                    readOnly: true,
+                    decoration: const InputDecoration(border: InputBorder.none),
+                    expands: true,
+                  )
+                : GestureDetector(
+                    onLongPress: () {
+                      launchUrlString(imageUrl!);
+                    },
+                    child: Image.network(imageUrl!,
+                        loadingBuilder: (context, child, loadingProgress) {
+                          if (loadingProgress == null) {
+                            return child;
+                          } else {
+                            return Center(
+                              child: CircularProgressIndicator(
+                                value: loadingProgress.expectedTotalBytes != null
+                                    ? loadingProgress.cumulativeBytesLoaded /
+                                        loadingProgress.expectedTotalBytes!
+                                    : null,
+                              ),
+                            );
+                          }
+                        }
+                      )
+                  )
             ),
           ],
         ),

@@ -170,7 +170,22 @@ class ChatBubbleImage extends StatelessWidget {
                       borderRadius: BorderRadius.circular(8),
                       child: FractionallySizedBox(
                         widthFactor: 0.8,
-                        child: Image.network(imageUrl),
+                        child: Image.network(imageUrl,
+                          loadingBuilder: (context, child, loadingProgress) {
+                            if (loadingProgress == null) {
+                              return child;
+                            } else {
+                              return Center(
+                                child: CircularProgressIndicator(
+                                  value: loadingProgress.expectedTotalBytes != null
+                                      ? loadingProgress.cumulativeBytesLoaded /
+                                          loadingProgress.expectedTotalBytes!
+                                      : null,
+                                ),
+                              );
+                            }
+                          }
+                        )
                       )
                     )
                   ),

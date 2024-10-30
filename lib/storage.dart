@@ -7,7 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:file_picker/file_picker.dart';
-import 'utils.dart' show Config;
+import 'utils.dart' show Config, SdConfig;
 
 
 // List 0:base_url 1:api_key 2:model_name 3:temperature 4:frequency_penalty 5:presence_penalty 6:max_tokens
@@ -186,6 +186,22 @@ Future<void> setDrawUrl(String url) async {
 Future<String?> getDrawUrl() async {
   final SharedPreferences prefs = await SharedPreferences.getInstance();
   return prefs.getString("draw_url");
+}
+
+Future<void> setSdConfig(SdConfig config) async {
+  final SharedPreferences prefs = await SharedPreferences.getInstance();
+  List<String> configList = [config.prompt, config.negativePrompt, config.model, 
+    config.sampler, config.width?.toString()??'', config.height?.toString()??'',
+    config.steps?.toString()??'', config.cfg?.toString()??''];
+  await prefs.setStringList("sd_config", configList);
+}
+
+Future<SdConfig> getSdConfig() async {
+  final SharedPreferences prefs = await SharedPreferences.getInstance();
+  List<String> configList = prefs.getStringList("sd_config") ?? ['','','','','','','',''];
+  return SdConfig(prompt: configList[0], negativePrompt: configList[1], model: configList[2],
+    sampler: configList[3], width: int.tryParse(configList[4]), height: int.tryParse(configList[5]),
+    steps: int.tryParse(configList[6]), cfg: int.tryParse(configList[7]));
 }
 
 Future<void> restoreFromJson(jsonString) async {
