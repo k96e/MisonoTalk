@@ -15,7 +15,7 @@ Future<void> completion(Config config, List<List<String>> message,
     'model': config.model,
     'messages':
         message.asMap().map((index, e) {
-          if (index == 0 && config.model.contains("claude")) {
+          if (e[0]=="system" && config.model.contains("claude")) {
             return MapEntry(index, {'role': 'user', 'content': "system instruction:\n${e[1]}"});
           }
           return MapEntry(index, {'role': e[0], 'content': e[1]});
