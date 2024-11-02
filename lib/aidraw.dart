@@ -24,6 +24,7 @@ class AiDrawState extends State<AiDraw>{
   String? imageUrl;
   String? sessionHash;
   bool gptBusy = false, sdBusy = false, showLog = false;
+  CancelToken cancelToken = CancelToken();
   late SdConfig sdConfig;
 
   Future<void> buildPrompt() async {
@@ -80,7 +81,7 @@ class AiDrawState extends State<AiDraw>{
     }
     setState(() {
       sdBusy = true;
-      imageUrl = null;
+      showLog = true;
     });
     if(!url.endsWith('/')) {
       url += '/';
@@ -97,15 +98,19 @@ class AiDrawState extends State<AiDraw>{
           "fn_index": 12,
           "session_hash": sessionHash,
         },
+        cancelToken: cancelToken,
       );
+      cancelToken = CancelToken();
       final Response<ResponseBody> loadModelQueue = await dio.get<ResponseBody>(
         "/queue/data",
         queryParameters: {"session_hash": sessionHash},
         options: Options(responseType: ResponseType.stream),
+        cancelToken: cancelToken,
       );
       await for (var chunk in loadModelQueue.data!.stream) {
         logController.text = utf8.decode(chunk) + logController.text;
       }
+      cancelToken = CancelToken();
     } else {
       logController.text = 'session already exists\nsession hash:$sessionHash';
     }
@@ -227,13 +232,15 @@ class AiDrawState extends State<AiDraw>{
         "fn_index": 13,
         "session_hash": sessionHash,
       },
+      cancelToken: cancelToken,
     );
-
+    cancelToken = CancelToken();
     // Inference queue
     final Response<ResponseBody> inferQueue = await dio.get<ResponseBody>(
       "/queue/data",
       queryParameters: {"session_hash": sessionHash},
       options: Options(responseType: ResponseType.stream),
+      cancelToken: cancelToken,
     );
     String lastUrl = '';
     final regex = RegExp(r'"(https?://[^"]+)"');
@@ -250,10 +257,12 @@ class AiDrawState extends State<AiDraw>{
         setState(() {
           imageUrl = lastUrl.replaceFirst("https://r3gm-diffusecraft.hf.space/", url);
           sdBusy = false;
+          showLog = false;
         });
         break;
       }
     }
+    cancelToken = CancelToken();
   }
 
   Widget sdConfigDialog(BuildContext context){
@@ -385,6 +394,25 @@ class AiDrawState extends State<AiDraw>{
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        actions: [
+          IconButton(
+            onPressed: () {
+              cancelToken.cancel();
+              cancelToken = CancelToken();
+              setState(() {
+                gptBusy = false;
+                sdBusy = false;
+              });
+            },
+            icon: const Icon(Icons.autorenew)
+          ),
+          IconButton(
+            onPressed: () {
+              Navigator.pop(context,imageUrl);
+            },
+            icon: const Icon(Icons.arrow_right_alt)
+          )
+        ],
         title: GestureDetector(
           onLongPress: () {
             setState(() {
@@ -424,20 +452,12 @@ class AiDrawState extends State<AiDraw>{
                 TextButton(
                   onPressed: () {
                     if(sdBusy) return;
-                    try{
-                      makeRequest();
-                    }on Exception catch(e) {
+                    makeRequest().catchError((e) {
                       snackBarAlert(context, "error! $e");
-                    }
+                    });
                   },
                   child: Text(sdBusy?'Drawing':'Draw')
-                ),
-                if(imageUrl != null) TextButton(
-                  onPressed: (){
-                    Navigator.pop(context, imageUrl);
-                  },
-                  child: const Text('Done')
-                ),
+                )
               ]
             ),
             TextField(
