@@ -184,7 +184,10 @@ class ChatBubbleImage extends StatelessWidget {
                                 ),
                               );
                             }
-                          }
+                          },
+                          errorBuilder: (context, error, stackTrace) {
+                            return const Icon(Icons.error);
+                          },
                         )
                       )
                     )

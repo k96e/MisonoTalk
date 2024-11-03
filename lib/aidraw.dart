@@ -397,8 +397,17 @@ class AiDrawState extends State<AiDraw>{
         actions: [
           IconButton(
             onPressed: () {
+              setState(() {
+                showLog = !showLog;
+              });
+            },
+            icon: Icon(showLog?Icons.image:Icons.assignment)
+          ),
+          IconButton(
+            onPressed: () {
               cancelToken.cancel();
               cancelToken = CancelToken();
+              sessionHash = null;
               setState(() {
                 gptBusy = false;
                 sdBusy = false;
@@ -413,14 +422,7 @@ class AiDrawState extends State<AiDraw>{
             icon: const Icon(Icons.arrow_right_alt)
           )
         ],
-        title: GestureDetector(
-          onLongPress: () {
-            setState(() {
-              showLog = !showLog;
-            });
-          },
-          child: const Text('AiDraw')
-        ),
+        title: const Text('AiDraw')
       ),
       body: Padding(
         padding: const EdgeInsets.all(8.0),
