@@ -60,6 +60,7 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
   List<Message> messages = [
     Message(message: originalMsg, type: Message.assistant),
   ];
+  List<Message>? lastMessages;
 
   @override
   void initState() {
@@ -177,6 +178,7 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
         });
         if(isResend){
           textController.clear();
+          lastMessages = messages.sublist(index+1,messages.length);
           messages.removeRange(index+1, messages.length);
           sendMsg(true);
         }
@@ -358,14 +360,20 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
           ),
           if(canRetry) TextButton(
             onPressed: () {
-              Navigator.of(context).pop();
+              Navigator.of(context).pop(true);
               sendMsg(true,forceSend: true);
             },
             child: const Text('重试'),
           ),
         ],
       ),
-    );
+    ).then((val){
+      if(val==null&&lastMessages!=null){
+        setState(() {
+          messages.addAll(lastMessages!);
+        });
+      }
+    });
   }
 
   Future<void> sendMsg(bool realSend,{bool forceSend=false}) async {
