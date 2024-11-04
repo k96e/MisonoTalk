@@ -22,6 +22,7 @@ class AiDrawState extends State<AiDraw>{
   TextEditingController apiController = TextEditingController();
   String lastModel = "";
   String? imageUrl;
+  String? imageUrlRaw;
   String? sessionHash;
   bool gptBusy = false, sdBusy = false, showLog = false;
   CancelToken cancelToken = CancelToken();
@@ -70,10 +71,6 @@ class AiDrawState extends State<AiDraw>{
   }
 
   Future<void> makeRequest() async {
-    if(promptController.text.isEmpty) {
-      snackBarAlert(context, "Prompt is empty!");
-      return;
-    }
     String url = apiController.text;
     if(url.isEmpty) {
       snackBarAlert(context, "Api url is empty!");
@@ -141,6 +138,8 @@ class AiDrawState extends State<AiDraw>{
           null,
           0.33,
           sdConfig.sampler,
+          "Automatic",
+          "Automatic",
           sdConfig.height??1600,
           sdConfig.width??1024,
           sdConfig.model,
@@ -180,6 +179,7 @@ class AiDrawState extends State<AiDraw>{
           true,
           true,
           true,
+          "model,seed",
           "./images",
           false,
           false,
@@ -243,11 +243,12 @@ class AiDrawState extends State<AiDraw>{
       cancelToken: cancelToken,
     );
     String lastUrl = '';
-    final regex = RegExp(r'"(https?://[^"]+)"');
+    final regexWebp = RegExp(r'"(https?://[^"]+)"');
+    final regexPng = RegExp(r'file=.+?\"');
     await for (var chunk in inferQueue.data!.stream) {
       String data = utf8.decode(chunk);
       logController.text = data + logController.text;
-      final match = regex.firstMatch(data);
+      final match = regexWebp.firstMatch(data);
       if (match != null) {
         lastUrl = match.group(1)!;
       }
@@ -259,7 +260,13 @@ class AiDrawState extends State<AiDraw>{
           sdBusy = false;
           showLog = false;
         });
-        break;
+      }
+      if (data.contains('GENERATION DATA')) {
+          Match? match = regexPng.firstMatch(data);
+          String? filePath = match?.group(0)?.replaceAll('\\"', '');
+          if(filePath != null) {
+            imageUrlRaw = url + filePath;
+          }
       }
     }
     cancelToken = CancelToken();
@@ -377,7 +384,7 @@ class AiDrawState extends State<AiDraw>{
         memConfig.negativePrompt = 'nsfw, (low quality, worst quality:1.2), very displeasing, 3d, watermark, signatrue, ugly, poorly drawn';
       }
       if(memConfig.model.isEmpty) {
-        memConfig.model = 'John6666/noobai-xl-nai-xl-epsilonpred05version-sdxl';
+        memConfig.model = 'John6666/noobai-xl-nai-xl-epsilonpred10version-sdxl';
       }
       if(memConfig.sampler.isEmpty) {
         memConfig.sampler = 'DPM++ 2M';
@@ -477,7 +484,7 @@ class AiDrawState extends State<AiDraw>{
                   )
                 : GestureDetector(
                     onLongPress: () {
-                      launchUrlString(imageUrl!);
+                      launchUrlString(imageUrlRaw==null?imageUrl!:imageUrlRaw!);
                     },
                     child: Image.network(imageUrl!,
                         loadingBuilder: (context, child, loadingProgress) {
