@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show HapticFeedback;
 import 'package:url_launcher/url_launcher_string.dart' show launchUrlString;
 import 'dart:io' show Platform;
-import 'dart:async' show Timer;
 import 'chatview.dart';
 import 'configpage.dart';
 import 'notifications.dart';
@@ -50,7 +49,7 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
   final fn = FocusNode();
   final textController = TextEditingController();
   final scrollController = ScrollController();
-  final notification= NotificationHelper();
+  final notification = NotificationHelper();
   static const String studentName = "未花";
   static const String originalMsg = "Sensei你终于来啦！\\我可是个乖乖看家的好孩子哦";
   Config config = Config(name: "", baseUrl: "", apiKey: "", model: "");
@@ -422,14 +421,22 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
     });
     List<List<String>> msg = parseMsg(await getPrompt(withExternal: externalPrompt), messages);
     logMsg(msg.sublist(1));
+    bool firstSplit = true;
     try {
       String response = "";
-      await completion(config, msg, (resp){
+      await completion(config, msg, 
+        (resp){
           if(resp.toString().contains("\\")){
             resp = randomizeBackslashes(resp.replaceAll("\\\\", "\\"));
           }
           response += resp.replaceAll("\n", '');
           updateResponse(response);
+          if(firstSplit && response.contains("\\")){
+            firstSplit = false;
+            if(!isForeground){
+              notification.showNotification(title: studentName, body: response.split("\\")[0]);
+            }
+          }
         }, (){
           debugPrint("done.");
           WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -440,20 +447,6 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
           });
           debugPrint("inputUnlocked");
           setTempHistory(msgListToJson(messages));
-          if(!isForeground) {
-            List<String> msgs = response.split("\\");
-            int index = 0;
-            Timer.periodic(const Duration(milliseconds: 500), (timer) {
-              if (index < msgs.length && !isForeground) {
-                if (msgs[index].isNotEmpty) {
-                  notification.showNotification(title: studentName, body: msgs[index]);
-                }
-                index++;
-              } else {
-                timer.cancel();
-              }
-            });
-          }
         }, (err){
           setState(() {
             inputLock = false;
