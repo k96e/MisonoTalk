@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show HapticFeedback;
 import 'package:url_launcher/url_launcher_string.dart' show launchUrlString;
 import 'dart:io' show Platform;
+import 'dart:async' show Timer;
 import 'chatview.dart';
 import 'configpage.dart';
 import 'notifications.dart';
@@ -49,6 +50,7 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
   final fn = FocusNode();
   final textController = TextEditingController();
   final scrollController = ScrollController();
+  final notification= NotificationHelper();
   static const String studentName = "未花";
   static const String originalMsg = "Sensei你终于来啦！\\我可是个乖乖看家的好孩子哦";
   Config config = Config(name: "", baseUrl: "", apiKey: "", model: "");
@@ -57,6 +59,7 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
   bool externalPrompt = false;
   bool inputLock = false;
   bool keyboardOn = false;
+  bool isForeground = true;
   List<Message> messages = [
     Message(message: originalMsg, type: Message.assistant),
   ];
@@ -82,6 +85,15 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state){
+    if(state == AppLifecycleState.resumed){
+      isForeground = true;
+    } else {
+      isForeground = false;
+    }
   }
 
   @override
@@ -427,12 +439,29 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
           });
           debugPrint("inputUnlocked");
           setTempHistory(msgListToJson(messages));
+          if(!isForeground) {
+            List<String> msgs = response.split("\\");
+            int index = 0;
+            Timer.periodic(const Duration(milliseconds: 500), (timer) {
+              if (index < msgs.length && !isForeground) {
+                if (msgs[index].isNotEmpty) {
+                  notification.showNotification(title: studentName, body: msgs[index]);
+                }
+                index++;
+              } else {
+                timer.cancel();
+              }
+            });
+          }
         }, (err){
           setState(() {
             inputLock = false;
           });
           debugPrint("inputUnlocked");
           errDialog(err.toString());
+          if(!isForeground){
+            notification.showNotification(title: "Error", body: "", showAvator: false);
+          }
         });
     } catch (e) {
       setState(() {
@@ -442,6 +471,9 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
       debugPrint(e.toString());
       if(!mounted) return;
       errDialog(e.toString());
+      if(!isForeground){
+        notification.showNotification(title: "Error", body: "", showAvator: false);
+      }
     }
   }
 

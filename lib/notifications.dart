@@ -24,17 +24,17 @@ class NotificationHelper {
   }
 
   Future<void> showNotification(
-      {required String title, required String body}) async {
-    const AndroidNotificationDetails androidNotificationDetails =
+      {required String title, required String body, bool showAvator=true}) async {
+    AndroidNotificationDetails androidNotificationDetails =
         AndroidNotificationDetails('k96e.momotalk.notification', 'notification',
             channelDescription: 'Message notifications',
             importance: Importance.max,
             priority: Priority.high,
             icon: "@mipmap/ic_launcher",
             visibility: NotificationVisibility.public,
-            largeIcon: DrawableResourceAndroidBitmap("head_round"),
+            largeIcon: showAvator ? const DrawableResourceAndroidBitmap("head_round"):null,
             ticker: 'message');
-    const NotificationDetails platformChannelSpecifics =
+    NotificationDetails platformChannelSpecifics =
         NotificationDetails(android: androidNotificationDetails);
     await _notificationsPlugin.show(
       Random().nextInt(10000),
