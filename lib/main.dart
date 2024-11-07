@@ -89,6 +89,7 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state){
+    super.didChangeAppLifecycleState(state);
     if(state == AppLifecycleState.resumed){
       isForeground = true;
     } else {

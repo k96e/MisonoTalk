@@ -5,6 +5,7 @@ import 'package:uuid/uuid.dart';
 import 'dart:convert';
 import 'utils.dart';
 import 'openai.dart';
+import 'notifications.dart';
 import 'storage.dart' show setDrawUrl, getDrawUrl, getSdConfig, setSdConfig;
 
 class AiDraw extends StatefulWidget {
@@ -16,7 +17,7 @@ class AiDraw extends StatefulWidget {
   AiDrawState createState() => AiDrawState();
 }
 
-class AiDrawState extends State<AiDraw>{
+class AiDrawState extends State<AiDraw> with WidgetsBindingObserver{
   TextEditingController logController = TextEditingController(text: '');
   TextEditingController promptController = TextEditingController(text: '');
   TextEditingController apiController = TextEditingController();
@@ -25,6 +26,8 @@ class AiDrawState extends State<AiDraw>{
   String? imageUrlRaw;
   String? sessionHash;
   bool gptBusy = false, sdBusy = false, showLog = false;
+  bool isForeground = true;
+  final notification = NotificationHelper();
   CancelToken cancelToken = CancelToken();
   late SdConfig sdConfig;
 
@@ -260,6 +263,13 @@ class AiDrawState extends State<AiDraw>{
           sdBusy = false;
           showLog = false;
         });
+        if(!isForeground) {
+          notification.showNotification(
+            title: 'AiDraw',
+            body: 'Drawing completed',
+            showAvator: false
+          );
+        }
       }
       if (data.contains('GENERATION DATA')) {
           Match? match = regexPng.firstMatch(data);
@@ -367,6 +377,16 @@ class AiDrawState extends State<AiDraw>{
   }
 
   @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    if(state == AppLifecycleState.resumed) {
+      isForeground = true;
+    } else {
+      isForeground = false;
+    }
+  }
+
+  @override
   void initState() {
     super.initState();
     getDrawUrl().then((value) {
@@ -415,6 +435,7 @@ class AiDrawState extends State<AiDraw>{
               cancelToken.cancel();
               cancelToken = CancelToken();
               sessionHash = null;
+              logController.text = '';
               setState(() {
                 gptBusy = false;
                 sdBusy = false;
