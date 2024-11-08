@@ -389,6 +389,7 @@ class AiDrawState extends State<AiDraw> with WidgetsBindingObserver{
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     getDrawUrl().then((value) {
         if(value == null) return;
         apiController.text = value;
@@ -415,6 +416,12 @@ class AiDrawState extends State<AiDraw> with WidgetsBindingObserver{
       memConfig.cfg ??= 7;
       sdConfig = memConfig;
     });
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
   }
 
   @override

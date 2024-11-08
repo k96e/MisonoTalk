@@ -343,6 +343,7 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
   }
 
   void clearMsg() {
+    lastMessages = null;
     setState(() {
       messages.clear();
       messages.add(Message(message: originalMsg, type: Message.assistant));
@@ -447,6 +448,7 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
           });
           debugPrint("inputUnlocked");
           setTempHistory(msgListToJson(messages));
+          lastMessages = null;
         }, (err){
           setState(() {
             inputLock = false;
