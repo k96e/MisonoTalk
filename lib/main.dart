@@ -59,6 +59,7 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
   bool inputLock = false;
   bool keyboardOn = false;
   bool isForeground = true;
+  bool isAutoNotification = false;
   List<Message> messages = [
     Message(message: originalMsg, type: Message.assistant),
   ];
@@ -91,6 +92,10 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
     super.didChangeAppLifecycleState(state);
     if(state == AppLifecycleState.resumed){
       isForeground = true;
+      if(isAutoNotification){
+        isAutoNotification = false;
+        notification.cancelAll();
+      }
     } else {
       isForeground = false;
     }
@@ -435,6 +440,7 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
           if(firstSplit && response.contains("\\")){
             firstSplit = false;
             if(!isForeground){
+              isAutoNotification = true;
               notification.showNotification(title: studentName, body: response.split("\\")[0]);
             }
           }
@@ -456,6 +462,7 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
           debugPrint("inputUnlocked");
           errDialog(err.toString());
           if(!isForeground){
+            isAutoNotification = true;
             notification.showNotification(title: "Error", body: "", showAvator: false);
           }
         });
@@ -468,6 +475,7 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
       if(!mounted) return;
       errDialog(e.toString());
       if(!isForeground){
+        isAutoNotification = true;
         notification.showNotification(title: "Error", body: "", showAvator: false);
       }
     }

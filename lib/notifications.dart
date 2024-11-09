@@ -43,4 +43,8 @@ class NotificationHelper {
       platformChannelSpecifics,
     );
   }
+
+  Future<void> cancelAll() async {
+    await _notificationsPlugin.cancelAll();
+  }
 }
