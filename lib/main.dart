@@ -427,7 +427,7 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
     });
     List<List<String>> msg = parseMsg(await getPrompt(withExternal: externalPrompt), messages);
     logMsg(msg.sublist(1));
-    bool firstSplit = true;
+    bool notificationSent= false;
     try {
       String response = "";
       await completion(config, msg, 
@@ -437,11 +437,18 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
           }
           response += resp.replaceAll("\n", '');
           updateResponse(response);
-          if(firstSplit && response.contains("\\")){
-            firstSplit = false;
-            if(!isForeground){
-              isAutoNotification = true;
-              notification.showNotification(title: studentName, body: response.split("\\")[0]);
+          if(!isForeground && !notificationSent && response.contains("\\")){
+            List<String> msgs = response.split("\\");
+            for(int i=0;i<msgs.length;i++){
+              if(msgs[i].startsWith("*")||msgs[i].startsWith("（")||msgs[i].startsWith("我无法继续")){
+                continue;
+              }
+              if(i!=msgs.length-1){
+                notification.showNotification(title: studentName, body: msgs[i]);
+                isAutoNotification = true;
+                notificationSent = true;
+                break;
+              }
             }
           }
         }, (){
