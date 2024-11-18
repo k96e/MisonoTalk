@@ -440,7 +440,8 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
           if(!isForeground && !notificationSent && response.contains("\\")){
             List<String> msgs = response.split("\\");
             for(int i=0;i<msgs.length;i++){
-              if(msgs[i].startsWith("*")||msgs[i].startsWith("（")||msgs[i].startsWith("我无法继续")){
+              if(msgs[i].isEmpty || msgs[i].startsWith("*")||
+                msgs[i].startsWith("（")||msgs[i].startsWith("我无法继续")){
                 continue;
               }
               if(i!=msgs.length-1){
@@ -461,6 +462,11 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
           });
           debugPrint("inputUnlocked");
           setTempHistory(msgListToJson(messages));
+          if(!isForeground && !notificationSent){
+            isAutoNotification = true;
+            notificationSent = true;
+            notification.showNotification(title: "Done", body: "" ,showAvator: false);
+          }
           lastMessages = null;
         }, (err){
           setState(() {
