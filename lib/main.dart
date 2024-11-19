@@ -461,7 +461,9 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
             inputLock = false;
           });
           debugPrint("inputUnlocked");
-          setTempHistory(msgListToJson(messages));
+          if(messages.last.message.contains("\\")){
+            setTempHistory(msgListToJson(messages));
+          }
           if(!isForeground && !notificationSent){
             isAutoNotification = true;
             notificationSent = true;
