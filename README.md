@@ -20,6 +20,9 @@
 #### 关于备份
  在设置页点击备份会默认导出备份文件到设备的下载目录，备份中文件除了保存的对话外还有api密钥等敏感信息，请勿轻易分享到公开平台
 
+#### 关于AI绘画
+ 使用[这个HuggingFace Space](https://r3gm-diffusecraft.hf.space/)作为api，你需要Duplicate this Space，获取自己的hf space url
+
 ### 叠甲
 - 自用项目能跑就行，代码很烂
 - 未花的设定基于个人偏好肯定有失偏颇，想要修改提示词可以直接覆盖`assets/prompt.txt`
