@@ -431,11 +431,10 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
     try {
       String response = "";
       await completion(config, msg, 
-        (resp){
-          if(resp.toString().contains("\\")){
-            resp = randomizeBackslashes(resp.replaceAll("\\\\", "\\"));
-          }
-          response += resp.replaceAll("\n", '');
+        (String resp){
+          resp = resp.replaceAll(RegExp(r'[\n\\]+'), r'\');
+          resp = randomizeBackslashes(resp);
+          response += resp;
           updateResponse(response);
           if(!isForeground && !notificationSent && response.contains("\\")){
             List<String> msgs = response.split("\\");
