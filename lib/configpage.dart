@@ -8,7 +8,8 @@ import 'utils.dart' show snackBarAlert, Config, DecimalTextInputFormatter;
 
 class ConfigPage extends StatefulWidget {
   final Function(Config) updateFunc;
-  const ConfigPage({super.key, required this.updateFunc});
+  final Config currentConfig;
+  const ConfigPage({super.key, required this.updateFunc, required this.currentConfig});
 
   @override
   ConfigPageState createState() => ConfigPageState();
@@ -32,18 +33,20 @@ class ConfigPageState extends State<ConfigPage> {
     getApiConfigs().then((List<Config> value) {
       setState(() {
         apiConfigs = value;
-        if (apiConfigs.isNotEmpty) {
-          selectedConfig = apiConfigs[0].name;
-          nameController.text = apiConfigs[0].name;
-          urlController.text = apiConfigs[0].baseUrl;
-          keyController.text = apiConfigs[0].apiKey;
-          modelController.text = apiConfigs[0].model;
-          temperatureController.text = apiConfigs[0].temperature ?? "";
-          frequencyPenaltyController.text = apiConfigs[0].frequencyPenalty ?? "";
-          presencePenaltyController.text = apiConfigs[0].presencePenalty ?? "";
-          maxTokensController.text = apiConfigs[0].maxTokens ?? "";
-          widget.updateFunc(apiConfigs[0]);
+        for (Config c in apiConfigs) {
+          if (c.name == widget.currentConfig.name) {
+            selectedConfig = c.name;
+            break;
+          }
         }
+        nameController.text = widget.currentConfig.name;
+        urlController.text = widget.currentConfig.baseUrl;
+        keyController.text = widget.currentConfig.apiKey;
+        modelController.text = widget.currentConfig.model;
+        temperatureController.text = widget.currentConfig.temperature ?? "";
+        frequencyPenaltyController.text = widget.currentConfig.frequencyPenalty ?? "";
+        presencePenaltyController.text = widget.currentConfig.presencePenalty ?? "";
+        maxTokensController.text = widget.currentConfig.maxTokens ?? "";
       });
     });
   }

@@ -603,7 +603,8 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
                   Navigator.push(
                       context,
                       MaterialPageRoute(
-                          builder: (context) => ConfigPage(updateFunc: updateConfig)));
+                          builder: (context) => 
+                            ConfigPage(updateFunc: updateConfig, currentConfig: config)));
                 } else if (value == 'Backup'){
                   Navigator.push(
                       context,
