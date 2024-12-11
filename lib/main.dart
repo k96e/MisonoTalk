@@ -563,7 +563,28 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
               ],
               onSelected: (String value) async {
                 if (value == 'Clear') {
-                  clearMsg();
+                  showDialog(
+                    context: context,
+                    builder: (context) => AlertDialog(
+                      title: const Text("Clear"),
+                      content: const Text("确认清除当前对话上下文？"),
+                      actions: [
+                        TextButton(
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                          },
+                          child: const Text('Cancel'),
+                        ),
+                        TextButton(
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                            clearMsg();
+                          },
+                          child: const Text('Clear'),
+                        ),
+                      ],
+                    ),
+                  );
                 } else if (value == 'Save') {
                   String prompt = await getPrompt(withExternal: externalPrompt);
                   if(!context.mounted) return;
