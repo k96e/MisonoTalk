@@ -71,6 +71,7 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
   bool keyboardOn = false;
   bool isForeground = true;
   bool isAutoNotification = false;
+  bool isOnTop = false;
   List<Message> messages = [
     Message(message: originalMsg, type: Message.assistant),
   ];
@@ -577,6 +578,11 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
                   child: Text('Settings...'),
                 ),
                 if (Platform.isWindows)
+                  PopupMenuItem(
+                    value: 'OnTop',
+                    child: Text('OnTop ${isOnTop?"√":"×"}'),
+                  ),
+                if (Platform.isWindows)
                   const PopupMenuItem(
                     value: 'Exit',
                     child: Text('Exit'),
@@ -678,6 +684,13 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
                 }else if (value == 'Exit') {
                   if (Platform.isWindows) {
                     windowManager.close();
+                  }
+                }else if (value == 'OnTop') {
+                  if (Platform.isWindows) {
+                    setState(() {
+                      isOnTop = !isOnTop;
+                    });
+                    windowManager.setAlwaysOnTop(isOnTop);
                   }
                 }
               },
