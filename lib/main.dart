@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show HapticFeedback;
 import 'package:url_launcher/url_launcher_string.dart' show launchUrlString;
+import 'package:window_manager/window_manager.dart';
 import 'dart:io' show Platform;
 import 'chatview.dart';
 import 'configpage.dart';
@@ -18,6 +19,16 @@ import 'aidraw.dart';
 
 main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  if (Platform.isWindows) {
+    await windowManager.ensureInitialized();
+    WindowOptions windowOptions = const WindowOptions(
+      titleBarStyle: TitleBarStyle.hidden,
+    );
+    windowManager.waitUntilReadyToShow(windowOptions, () async {
+      await windowManager.show();
+      await windowManager.focus();
+    });
+  }
   NotificationHelper notificationHelper = NotificationHelper();
   await notificationHelper.initialize();
   runApp(const MomotalkApp());
@@ -500,17 +511,22 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
     return Scaffold(
         appBar: AppBar(
           toolbarHeight: 50,
-          title: const SizedBox(
+          title: const DragToMoveArea(
+            child: SizedBox(
               height: 22,
               child: Image(
-                  image: AssetImage("assets/momotalk.webp"),
-                  fit: BoxFit.scaleDown)),
-          flexibleSpace: Container(
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                colors: <Color>[Color(0xffff899e), Color(0xfff79bac)],
+                image: AssetImage("assets/momotalk.webp"),
+                fit: BoxFit.scaleDown)
+            )
+          ),
+          flexibleSpace: DragToMoveArea(
+            child: Container(
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  colors: <Color>[Color(0xffff899e), Color(0xfff79bac)],
+                ),
               ),
-            ),
+            )
           ),
           actions: <Widget>[
             PopupMenuButton<String>(
@@ -560,6 +576,11 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
                   value: 'Settings',
                   child: Text('Settings...'),
                 ),
+                if (Platform.isWindows)
+                  const PopupMenuItem(
+                    value: 'Exit',
+                    child: Text('Exit'),
+                  ),
               ],
               onSelected: (String value) async {
                 if (value == 'Clear') {
@@ -654,6 +675,10 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
                   ).then((msgs){setState(() {});});
                 }else if (value == 'Draw') {
                   sdWorkflow();
+                }else if (value == 'Exit') {
+                  if (Platform.isWindows) {
+                    windowManager.close();
+                  }
                 }
               },
             ),
