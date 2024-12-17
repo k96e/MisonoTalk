@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show HapticFeedback;
 import 'package:url_launcher/url_launcher_string.dart' show launchUrlString;
 import 'package:window_manager/window_manager.dart';
+import 'package:eventflux/eventflux.dart';
 import 'dart:io' show Platform;
 import 'chatview.dart';
 import 'configpage.dart';
@@ -577,6 +578,11 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
                   value: 'Settings',
                   child: Text('Settings...'),
                 ),
+                if (inputLock)
+                  const PopupMenuItem(
+                    value: 'Stop',
+                    child: Text('Stop'),
+                  ),
                 if (Platform.isWindows)
                   PopupMenuItem(
                     value: 'OnTop',
@@ -692,6 +698,13 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
                     });
                     windowManager.setAlwaysOnTop(isOnTop);
                   }
+                }else if (value == 'Stop') {
+                  EventFlux.instance.disconnect().then((val){
+                    debugPrint(val.toString());
+                    setState(() {
+                      inputLock = false;
+                    });
+                  });
                 }
               },
             ),
