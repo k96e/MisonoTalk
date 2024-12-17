@@ -79,13 +79,17 @@ class ChatBubbleLayoutLeft extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Padding(
-            padding: EdgeInsets.only(top: 7,right: 2),
+        const SizedBox(
+          width: 50,
+          child: Padding(
+            padding: EdgeInsets.only(top: 7),
             child: CircleAvatar(
               backgroundImage: AssetImage("assets/head.webp"),
               radius: 25,
-            )),
-        const SizedBox(width: 8),
+            )
+          )
+        ),
+        const SizedBox(width: 10),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
