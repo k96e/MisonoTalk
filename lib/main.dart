@@ -733,12 +733,15 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
                                     const SizedBox(height: 10),
                                     GestureDetector(
                                       onLongPressStart: (LongPressStartDetails details) {
+                                        if(message.isHide) return;
                                         onMsgPressed(index, details);
                                       },
-                                      child: ChatElement(
-                                        message: message.message,
-                                        type: message.type,
-                                        stuName: studentName,
+                                      child: Opacity(opacity: message.isHide?0.3:1.0,
+                                        child: ChatElement(
+                                          message: message.message,
+                                          type: message.type,
+                                          stuName: studentName,
+                                        )
                                       )
                                     )
                                   ],
@@ -746,14 +749,18 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
                               }
                               return GestureDetector(
                                 onLongPressStart: (LongPressStartDetails details) {
+                                  if(message.isHide) return;
                                   onMsgPressed(index, details);
                                   fn.unfocus();
                                 },
-                                child: ChatElement(
+                                child: Opacity(opacity: message.isHide?0.3:1.0,
+                                  child: ChatElement(
                                   message: message.message, 
                                   type: message.type,
-                                  stuName: studentName)
-                                );
+                                  stuName: studentName
+                                  )
+                                )
+                              );
                             },
                           )))),
               Padding(
