@@ -9,6 +9,7 @@ import 'package:flutter/services.dart';
 class Message {
   String message;
   int type;
+  bool isHide = false;
   static const int assistant = 1;
   static const int user = 2;
   static const int system = 3;
@@ -92,6 +93,7 @@ List<List<String>> parseMsg(String prompt, List<Message> messages) {
   List<List<String>> msg = [];
   msg.add(["system",prompt]);
   for (var m in messages) {
+    if(m.isHide) continue;
     if (m.type == Message.assistant) {
       msg.add(["assistant",m.message.replaceAll("\\\\", "\\")]);
     } else if (m.type == Message.user) {

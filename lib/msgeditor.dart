@@ -63,6 +63,19 @@ class MsgEditorState extends State<MsgEditor> {
               const SizedBox(width: 8),
               ElevatedButton(
                 onPressed: () {
+                  setState(() {
+                    for (Message msg in widget.msgs) {
+                      if (selected[widget.msgs.indexOf(msg)]){
+                        msg.isHide = !msg.isHide;
+                      }
+                    }
+                  });
+                },
+                child: const Text('*Hide'),
+              ),
+              const SizedBox(width: 8),
+              ElevatedButton(
+                onPressed: () {
                   Navigator.pop(context, widget.msgs);
                 },
                 child: const Text('确认'),
@@ -78,7 +91,8 @@ class MsgEditorState extends State<MsgEditor> {
                   child: Card(
                     child: ListTile(
                       selected: selected[index],
-                      title: Text(typeDesc(widget.msgs[index].type)+widget.msgs[index].message,maxLines: 2,overflow: TextOverflow.ellipsis,),
+                      title: Text((widget.msgs[index].isHide?'*':'')+typeDesc(widget.msgs[index].type)+widget.msgs[index].message,
+                        maxLines: 2, overflow: TextOverflow.ellipsis,),
                     ),
                   ),
                   onHorizontalDragEnd: (details) {
