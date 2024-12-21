@@ -1,5 +1,6 @@
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'dart:io' show Platform;
 import 'dart:math' show Random;
 
 class NotificationHelper {
@@ -10,6 +11,7 @@ class NotificationHelper {
       FlutterLocalNotificationsPlugin();
 
   Future<void> initialize() async {
+    if (!Platform.isAndroid) return;
     var permission = await Permission.notification.status;
     if (!permission.isGranted) {
       await Permission.notification.request();
@@ -25,6 +27,7 @@ class NotificationHelper {
 
   Future<void> showNotification(
       {required String title, required String body, bool showAvator=true}) async {
+    if(!Platform.isAndroid) return;
     AndroidNotificationDetails androidNotificationDetails =
         AndroidNotificationDetails('k96e.momotalk.notification', 'notification',
             channelDescription: 'Message notifications',
@@ -45,6 +48,7 @@ class NotificationHelper {
   }
 
   Future<void> cancelAll() async {
+    if(!Platform.isAndroid) return;
     await _notificationsPlugin.cancelAll();
   }
 }
