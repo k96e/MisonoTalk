@@ -69,6 +69,15 @@ class MsgEditorState extends State<MsgEditor> {
                         msg.isHide = !msg.isHide;
                       }
                     }
+                    selected.fillRange(0, selected.length, false);
+                    lastSwipe = -1;
+                  });
+                },
+                onLongPress: () {
+                  setState(() {
+                    for (Message msg in widget.msgs) {
+                      msg.isHide = false;
+                    }
                   });
                 },
                 child: const Text('*Hide'),

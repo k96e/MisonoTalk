@@ -92,8 +92,16 @@ String timestampToSystemMsg(String timestr) {
 List<List<String>> parseMsg(String prompt, List<Message> messages) {
   List<List<String>> msg = [];
   msg.add(["system",prompt]);
+  bool hideFlag = false;
   for (var m in messages) {
-    if(m.isHide) continue;
+    if(m.isHide){
+      if(!hideFlag){
+        msg.add(["system","此处部分对话已略过"]);
+        hideFlag = true;
+      }
+      continue;
+    }
+    hideFlag = false;
     if (m.type == Message.assistant) {
       msg.add(["assistant",m.message.replaceAll("\\\\", "\\")]);
     } else if (m.type == Message.user) {
