@@ -92,7 +92,7 @@ class WebdavPageState extends State<WebdavPage> {
     }
   }
 
-  Future<void> backupCurrent() async {
+  Future<void> backupCurrent({String? fileName}) async {
     try {
       var client = newClient(urlController.text, user: usernameController.text, password: passwordController.text);
       Uint8List data = utf8.encode(widget.currentMessages);
@@ -100,11 +100,19 @@ class WebdavPageState extends State<WebdavPage> {
       setState(() {
         progress = 0;
       });
-      await client.write("momotalk/$timestamp.json", data, onProgress: (count, total) {
+      await client.write(fileName==null?"momotalk/$timestamp.json":"momotalk/$fileName", data, onProgress: (count, total) {
         setState(() {
           progress = count / total;
         });
       },);
+      if(fileName != null){
+        for (int i = 0; i < messageRecords.length; i++) {
+          if (messageRecords[i][1] == fileName) {
+            messageRecords[i][2] = widget.currentMessages;
+            break;
+          }
+        }
+      }
       if(!context.mounted) return;
       snackBarAlert(context, "Backup OK");
     } catch (e) {
@@ -162,6 +170,9 @@ class WebdavPageState extends State<WebdavPage> {
   
   Future<void> freshList() async {
     try {
+      setState(() {
+        messageRecords.clear();
+      });
       var client = newClient(urlController.text, user: usernameController.text, password: passwordController.text);
       client.readDir("momotalk").then((list) {
         List<List<String>> records = [];
@@ -288,6 +299,32 @@ class WebdavPageState extends State<WebdavPage> {
                       child: ListTile(
                         title: Text(messageRecords[index][0]),
                         onTap: () => loadItem(index),
+                        onLongPress: () {
+                          showDialog(
+                            context: context,
+                            builder: (BuildContext context) {
+                              return AlertDialog(
+                                title: const Text("覆盖保存"),
+                                content: const Text("使用当前记录覆盖该项？"),
+                                actions: <Widget>[
+                                  TextButton(
+                                    onPressed: () {
+                                      Navigator.of(context).pop();
+                                    },
+                                    child: const Text('取消'),
+                                  ),
+                                  TextButton(
+                                    onPressed: () {
+                                      backupCurrent(fileName: messageRecords[index][1]);
+                                      Navigator.of(context).pop();
+                                    },
+                                    child: const Text('确定'),
+                                  ),
+                                ],
+                              );
+                            }
+                          );
+                        },
                       )
                     );
                   },
