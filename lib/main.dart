@@ -684,7 +684,14 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
                     MaterialPageRoute(
                       builder: (context) => MsgEditor(msgs: messages)
                     )
-                  ).then((msgs){setState(() {});});
+                  ).then((msgs){
+                    if(msgs!=null){
+                      setState(() {
+                        messages.clear();
+                        messages.addAll(msgs);
+                      });
+                    }
+                  });
                 }else if (value == 'Draw') {
                   sdWorkflow();
                 }else if (value == 'Exit') {

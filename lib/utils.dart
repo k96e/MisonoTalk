@@ -16,7 +16,7 @@ class Message {
   static const int timestamp = 4;
   static const int image = 5;
 
-  Message({required this.message, required this.type});
+  Message({required this.message, required this.type, this.isHide = false});
 
   Map<String, dynamic> toJson() {
     return {
@@ -31,6 +31,14 @@ class Message {
       type: json['type'],
     );
   }
+}
+
+List<Message> copyMsgs(List<Message> msgs) {
+  List<Message> newMsgs = [];
+  for (var m in msgs) {
+    newMsgs.add(Message(message: m.message, type: m.type, isHide: m.isHide));
+  }
+  return newMsgs;
 }
 
 class Config {

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'utils.dart' show Message;
+import 'utils.dart' show Message, copyMsgs;
 
 class MsgEditor extends StatefulWidget {
   final List<Message> msgs;
@@ -11,11 +11,13 @@ class MsgEditor extends StatefulWidget {
 
 class MsgEditorState extends State<MsgEditor> {
   late List<bool> selected;
+  late List<Message> msgs;
   int lastSwipe = -1;
 
   @override
   void initState() {
-    selected = List.filled(widget.msgs.length, false, growable: true);
+    msgs = copyMsgs(widget.msgs);
+    selected = List.filled(msgs.length, false, growable: true);
     super.initState();
   }
 
@@ -54,7 +56,7 @@ class MsgEditorState extends State<MsgEditor> {
               ElevatedButton(
                 onPressed: () {
                   setState(() {
-                    widget.msgs.removeWhere((element) => selected[widget.msgs.indexOf(element)]);
+                    msgs.removeWhere((element) => selected[msgs.indexOf(element)]);
                     selected.removeWhere((element) => element);
                   });
                 },
@@ -64,8 +66,8 @@ class MsgEditorState extends State<MsgEditor> {
               ElevatedButton(
                 onPressed: () {
                   setState(() {
-                    for (Message msg in widget.msgs) {
-                      if (selected[widget.msgs.indexOf(msg)]){
+                    for (Message msg in msgs) {
+                      if (selected[msgs.indexOf(msg)]){
                         msg.isHide = !msg.isHide;
                       }
                     }
@@ -75,7 +77,7 @@ class MsgEditorState extends State<MsgEditor> {
                 },
                 onLongPress: () {
                   setState(() {
-                    for (Message msg in widget.msgs) {
+                    for (Message msg in msgs) {
                       msg.isHide = false;
                     }
                   });
@@ -85,7 +87,7 @@ class MsgEditorState extends State<MsgEditor> {
               const SizedBox(width: 8),
               ElevatedButton(
                 onPressed: () {
-                  Navigator.pop(context, widget.msgs);
+                  Navigator.pop(context, msgs);
                 },
                 child: const Text('确认'),
               ),
@@ -94,13 +96,13 @@ class MsgEditorState extends State<MsgEditor> {
           ),
           Expanded(
             child: ListView.builder(
-              itemCount: widget.msgs.length,
+              itemCount: msgs.length,
               itemBuilder: (context, index) {
                 return GestureDetector(
                   child: Card(
                     child: ListTile(
                       selected: selected[index],
-                      title: Text((widget.msgs[index].isHide?'*':'')+typeDesc(widget.msgs[index].type)+widget.msgs[index].message,
+                      title: Text((msgs[index].isHide?'*':'')+typeDesc(msgs[index].type)+msgs[index].message,
                         maxLines: 2, overflow: TextOverflow.ellipsis,),
                     ),
                   ),
