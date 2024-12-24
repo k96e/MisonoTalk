@@ -63,7 +63,16 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
   final scrollController = ScrollController();
   final notification = NotificationHelper();
   static const String studentName = "未花";
-  static const String originalMsg = "Sensei你终于来啦！\\我可是个乖乖看家的好孩子哦";
+  List<String> welcomeMsgs = [
+    "Sensei你终于来啦！\\我可是个乖乖看家的好孩子哦",
+    "Sensei，欢迎回来！\\我在等你哦！"
+  ];
+  List<List<String>> specialWelcomeMsgs = [
+    ["新年快乐，Sensei！ \\\\虽然是这样的我\\今年也请多多指教哦☆","1-1"],
+    ["万圣节快乐☆\\好像有卖今天限定的饰品哦！\\\\一起去购物之类的，怎么样呀？","10-31","11-1"],
+    ["是神圣的夜晚呢，Sensei\\今天有什么计划吗？\\\\...可以的话\\要不要和我一起过呢☆","12-24","12-25"],
+
+  ];
   Config config = Config(name: "", baseUrl: "", apiKey: "", model: "");
   String userMsg = "";
   int splitCount = 0;
@@ -73,15 +82,14 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
   bool isForeground = true;
   bool isAutoNotification = false;
   bool isOnTop = false;
-  List<Message> messages = [
-    Message(message: originalMsg, type: Message.assistant),
-  ];
+  List<Message> messages=[];
   List<Message>? lastMessages;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    clearMsg();
     getTempHistory().then((msg) {
       if (msg != null) {
         loadHistory(msg);
@@ -362,10 +370,24 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
 
   void clearMsg() {
     lastMessages = null;
+    String welcomeMsg = "";
+    DateTime now = DateTime.now();
+    String dateStr = "${now.month}-${now.day}";
+    for (var specialOri in specialWelcomeMsgs) {
+      for (var m in specialOri) {
+        if (m==dateStr) {
+          welcomeMsg = specialOri[0];
+          break;
+        }
+      }
+      if (welcomeMsg.isNotEmpty) break;
+    }
+    if (welcomeMsg.isEmpty) {
+      welcomeMsg = welcomeMsgs[now.second % welcomeMsgs.length];
+    }
     setState(() {
       messages.clear();
-      messages.add(Message(message: originalMsg, type: Message.assistant));
-      setTempHistory(msgListToJson(messages));
+      messages.add(Message(message: welcomeMsg, type: Message.assistant));
     });
   }
 
