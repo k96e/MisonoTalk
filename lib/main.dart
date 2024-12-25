@@ -721,10 +721,13 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
                   });
                   snackBarAlert(context, "ExtPrompt ${externalPrompt?"on":"off"}");
                 }else if (value == 'Msgs') {
+                  int promptLength = (await getPrompt(withExternal: externalPrompt)).length;
+                  if(!context.mounted) return;
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => MsgEditor(msgs: messages)
+                      builder: (context) => MsgEditor(msgs: messages, 
+                      promptLength: promptLength,)
                     )
                   ).then((msgs){
                     if(msgs!=null){
