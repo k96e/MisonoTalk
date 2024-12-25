@@ -16,6 +16,7 @@ import 'utils.dart';
 import 'webdav.dart';
 import 'msgeditor.dart';
 import 'aidraw.dart';
+import 'recordmsgs.dart';
 
 
 main() async {
@@ -85,6 +86,7 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
   bool isOnTop = false;
   List<Message> messages=[];
   List<Message>? lastMessages;
+  List<String> recordMessages=[];
 
   @override
   void initState() {
@@ -94,6 +96,7 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
     getTempHistory().then((msg) {
       if (msg != null) {
         loadHistory(msg);
+        recordMessages.add(msg);
       }
     });
     getApiConfigs().then((configs) {
@@ -345,6 +348,9 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
       messages.clear();
       messages.addAll(msgs);
     });
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      setScrollPercent(1.0);
+    });
   }
 
   void updateResponse(String response) {
@@ -497,7 +503,9 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
           });
           debugPrint("inputUnlocked");
           if(messages.last.message.contains("\\")){
-            setTempHistory(msgListToJson(messages));
+            String msg = msgListToJson(messages);
+            setTempHistory(msg);
+            recordMessages.add(msg);
           }
           if(!isForeground && !notificationSent){
             isAutoNotification = true;
@@ -613,6 +621,10 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
                   child: Text('History...'),
                 ),
                 const PopupMenuItem(
+                  value: 'Records',
+                  child: Text('Records...'),
+                ),
+                const PopupMenuItem(
                   value: 'Msgs',
                   child: Text('Msgs...'),
                 ),
@@ -708,7 +720,6 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
                           builder: (context) => WebdavPage(
                             currentMessages: msgListToJson(messages),
                             onRefresh: loadHistory)));
-
                 }else if (value == 'History') {
                   showModalBottomSheet(
                       context: context,
@@ -757,6 +768,15 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
                       inputLock = false;
                     });
                   });
+                }else if (value == 'Records') {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => RecordMsgs(
+                        msgs: recordMessages.reversed.toList(),
+                        updateMsg: loadHistory)
+                    )
+                  );
                 }
               },
             ),
