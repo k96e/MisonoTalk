@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart' show HapticFeedback;
+import 'package:flutter/services.dart' show HapticFeedback,SystemNavigator;
 import 'package:url_launcher/url_launcher_string.dart' show launchUrlString;
 import 'package:window_manager/window_manager.dart';
 import 'package:eventflux/eventflux.dart';
@@ -74,6 +74,7 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
 
   ];
   Config config = Config(name: "", baseUrl: "", apiKey: "", model: "");
+  DateTime? currentBackPressTime;
   String userMsg = "";
   int splitCount = 0;
   bool externalPrompt = false;
@@ -532,7 +533,26 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return PopScope(
+      canPop: false,
+      onPopInvoked: (bool didPop) async {
+        if(!Platform.isAndroid) return;
+        if (didPop) return;
+        if(currentBackPressTime==null||DateTime.now().difference(currentBackPressTime!) > const Duration(seconds: 2)){
+          currentBackPressTime = DateTime.now();
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              behavior: SnackBarBehavior.floating,
+              content: Center(child: Text('再次返回以退出')),
+              duration: Duration(seconds: 2),
+            ),
+          );
+          return;
+        }else{
+          SystemNavigator.pop();
+        }
+      },
+      child: Scaffold(
         appBar: AppBar(
           toolbarHeight: 50,
           title: const DragToMoveArea(
@@ -836,6 +856,8 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
               )
             ],
           ),
-        ));
+        )
+      )
+    );
   }
 }
