@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'utils.dart' show Message, jsonToMsg;
+import 'storage.dart' show setTempHistory;
 
 class RecordMsgs extends StatefulWidget {
   final List<String> msgs;
@@ -60,6 +61,7 @@ class RecordMsgsState extends State<RecordMsgs> {
                               TextButton(
                                 onPressed: () {
                                   widget.updateMsg(widget.msgs[index]);
+                                  setTempHistory(widget.msgs[index]);
                                   Navigator.of(context).popUntil((route) => route.isFirst);
                                 }, 
                                 child: const Text('确定')
