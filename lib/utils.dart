@@ -31,6 +31,11 @@ class Message {
       type: json['type'],
     );
   }
+
+  @override
+  String toString() {
+    return 'Message{message: $message, type: $type, isHide: $isHide}';
+  }
 }
 
 List<Message> copyMsgs(List<Message> msgs) {

@@ -1,9 +1,13 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show HapticFeedback,SystemNavigator;
 import 'package:url_launcher/url_launcher_string.dart' show launchUrlString;
 import 'package:window_manager/window_manager.dart';
 import 'package:eventflux/eventflux.dart';
+import 'package:app_links/app_links.dart';
 import 'dart:io' show Platform;
+import 'dart:convert' show base64, utf8;
 import 'chatview.dart';
 import 'configpage.dart';
 import 'notifications.dart';
@@ -87,11 +91,21 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
   List<Message> messages=[];
   List<Message>? lastMessages;
   List<String> recordMessages=[];
+  late AppLinks appLinks;
+  StreamSubscription<Uri>? linksSubscription;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    appLinks = AppLinks();
+    linksSubscription = appLinks.uriLinkStream.listen((Uri uri) {
+      String payload = uri.toString();
+      debugPrint(payload);
+      if(!payload.startsWith("misonotalk:///?m=")) return;
+      payload = payload.replaceFirst("misonotalk:///?m=", "");
+      handleAppLink(payload);
+    });
     clearMsg();
     getTempHistory().then((msg) {
       if (msg != null) {
@@ -109,6 +123,7 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    linksSubscription?.cancel();
     super.dispose();
   }
 
@@ -160,6 +175,46 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
     WidgetsBinding.instance.addPostFrameCallback((_) {
       scrollController.animateTo(currentScroll,
           duration: const Duration(milliseconds: 200), curve: Curves.easeOut);
+    });
+  }
+
+  Future<void> handleAppLink(String payload) async {
+    late List<Message> msgs;
+    try {
+      payload = utf8.decode(base64.decode(payload));
+      msgs = jsonToMsg(payload);
+    } catch (e) {
+      debugPrint(e.toString());
+      debugPrint(payload);
+      return;
+    }
+    debugPrint(msgs.toString());
+    showDialog(context: context, builder: (context){
+      return AlertDialog(
+        title: const Text("App Link"),
+        content: const Text("是否加载链接内容？"),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              setState(() {
+                messages.clear();
+                messages.addAll(msgs);
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  setScrollPercent(1.0);
+                });
+              });
+            },
+            child: const Text('Load'),
+          ),
+        ],
+      );
     });
   }
 
