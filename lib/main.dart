@@ -102,9 +102,11 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
     linksSubscription = appLinks.uriLinkStream.listen((Uri uri) {
       String payload = uri.toString();
       debugPrint(payload);
-      if(!payload.startsWith("misonotalk:///?m=")) return;
-      payload = payload.replaceFirst("misonotalk:///?m=", "");
-      handleAppLink(payload);
+      Map<String,String> params = uri.queryParameters;
+      if(params.containsKey("m")){
+        payload = params["m"]!;
+        handleAppLink(payload);
+      }
     });
     clearMsg();
     getTempHistory().then((msg) {
