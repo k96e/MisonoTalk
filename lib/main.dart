@@ -95,26 +95,24 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
   StreamSubscription<Uri>? linksSubscription;
 
   @override
-  void initState() {
+  void initState() async {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    clearMsg();
+    String? msg = await getTempHistory();
+    if (msg != null) {
+      loadHistory(msg);
+      recordMessages.add(msg);
+    }
+    List<Config> configs = await getApiConfigs();
+    if (configs.isNotEmpty) {
+      config = configs[0];
+    }
     appLinks = AppLinks();
     linksSubscription = appLinks.uriLinkStream.listen((Uri uri) {
       String payload = uri.toString();
       debugPrint(payload);
       handleAppLink(uri.queryParameters);
-    });
-    clearMsg();
-    getTempHistory().then((msg) {
-      if (msg != null) {
-        loadHistory(msg);
-        recordMessages.add(msg);
-      }
-    });
-    getApiConfigs().then((configs) {
-      if (configs.isNotEmpty) {
-        config = configs[0];
-      }
     });
   }
 
