@@ -102,11 +102,7 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
     linksSubscription = appLinks.uriLinkStream.listen((Uri uri) {
       String payload = uri.toString();
       debugPrint(payload);
-      Map<String,String> params = uri.queryParameters;
-      if(params.containsKey("m")){
-        payload = params["m"]!;
-        handleAppLink(payload);
-      }
+      handleAppLink(uri.queryParameters);
     });
     clearMsg();
     getTempHistory().then((msg) {
@@ -180,17 +176,32 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
     });
   }
 
-  Future<void> handleAppLink(String payload) async {
+  Future<void> handleAppLink(Map<String,String> payload) async {
     late List<Message> msgs;
+    if(!payload.containsKey("m")) return;
     try {
-      payload = utf8.decode(base64.decode(payload));
-      msgs = jsonToMsg(payload);
+      String msgStr = utf8.decode(base64.decode(payload['m']!));
+      msgs = jsonToMsg(msgStr);
     } catch (e) {
       debugPrint(e.toString());
-      debugPrint(payload);
+      debugPrint(payload['m']);
       return;
     }
     debugPrint(msgs.toString());
+    if(msgs.isEmpty) return;
+    if(payload["confirm"]=="true"){
+      setState(() {
+        messages.clear();
+        messages.addAll(msgs);
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          setScrollPercent(1.0);
+          if(msgs.last.type == Message.system || msgs.last.type == Message.user){
+            sendMsg(true,forceSend: true);
+          }
+        });
+      });
+      return;
+    }
     showDialog(context: context, builder: (context){
       return AlertDialog(
         title: const Text("App Link"),
