@@ -238,6 +238,9 @@ class AiDrawState extends State<AiDraw> with WidgetsBindingObserver{
           "style",
           0.7,
           0,
+          null,
+          1,
+          0.5,
           false,
           false,
           59
@@ -415,7 +418,7 @@ class AiDrawState extends State<AiDraw> with WidgetsBindingObserver{
         memConfig.negativePrompt = 'nsfw, (low quality, worst quality:1.2), very displeasing, 3d, watermark, signatrue, ugly, poorly drawn';
       }
       if(memConfig.model.isEmpty) {
-        memConfig.model = 'John6666/noobai-xl-nai-xl-epsilonpred10version-sdxl';
+        memConfig.model = 'Laxhar/noobai-XL-1.1';
       }
       if(memConfig.sampler.isEmpty) {
         memConfig.sampler = 'DPM++ 2M';
