@@ -46,32 +46,72 @@ class HistoryPageState extends State<HistoryPage> {
               subtitle: Text(historys[index][0]),
               isThreeLine: true,
               onTap: () {
-                widget.updateFunc(historys[index][2]);
-                Navigator.pop(context);
-              },
-              onLongPress: ()=> showDialog(
-                context: context,
-                builder: (context) => AlertDialog(
-                  title: const Text('Delete Item'),
-                  content: const Text('Are you sure you want to delete this item?'),
+                showDialog(context: context, builder: (context) => AlertDialog(
+                  title: Text(getTimeStr(index)),
+                  content: SingleChildScrollView(
+                    child: Text(historys[index][2]),
+                  ),
                   actions: [
                     TextButton(
-                      onPressed: () => Navigator.pop(context),
-                      child: const Text('Cancel'),
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      },
+                      child: const Text('取消'),
                     ),
                     TextButton(
-                      onPressed: (){
-                        deleteHistory("history_${historys[index][1]}");
-                        setState(() {
-                          historys.removeAt(index);
-                        });
-                        Navigator.pop(context);
+                      onPressed: () {
+                        widget.updateFunc(historys[index][2]);
+                        Navigator.of(context).popUntil((route) => route.isFirst);
                       },
-                      child: const Text('Delete'),
+                      child: const Text('恢复'),
                     ),
                   ],
-                ),
-              ),
+                ));
+              },
+              onLongPress: () {
+                showDialog(
+                  context: context, builder: (context) => AlertDialog(
+                    content: SingleChildScrollView(
+                      child: Text(historys[index][2]),
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(context),
+                        child: const Text('取消'),
+                      ),
+                      TextButton(
+                        onPressed: (){
+                          showDialog(context: context, builder: (context) => AlertDialog(
+                            title: const Text('删除'),
+                            content: const Text('确认删除?'),
+                            actions: [
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.of(context).pop();
+                                },
+                                child: const Text('取消'),
+                              ),
+                              TextButton(
+                                onPressed: () {
+                                  deleteHistory("history_${historys[index][1]}");
+                                  setState(() {
+                                    historys.removeAt(index);
+                                  });
+                                  Navigator.pop(context);
+                                },
+                                child: const Text('删除'),
+                              ),
+                            ],
+                          )).then((value) async {
+                            Navigator.pop(context);
+                          });
+                        },
+                        child: const Text('删除'),
+                      ),
+                    ],
+                  )
+                );
+              },
             ),
           );
         },
