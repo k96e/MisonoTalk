@@ -94,10 +94,7 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
   late AppLinks appLinks;
   StreamSubscription<Uri>? linksSubscription;
 
-  @override
-  void initState() async {
-    super.initState();
-    WidgetsBinding.instance.addObserver(this);
+  Future<void> initialize() async {
     clearMsg();
     String? msg = await getTempHistory();
     if (msg != null) {
@@ -114,6 +111,13 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
       debugPrint(payload);
       handleAppLink(uri.queryParameters);
     });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    initialize();
   }
 
   @override
