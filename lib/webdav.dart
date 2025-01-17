@@ -6,7 +6,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:webdav_client/webdav_client.dart';
 import 'storage.dart';
-import 'utils.dart' show snackBarAlert;
+import 'utils.dart' show snackBarAlert,msgsListWidget;
 
 class WebdavPage extends StatefulWidget {
   final String currentMessages;
@@ -145,9 +145,7 @@ class WebdavPageState extends State<WebdavPage> {
       (BuildContext context) {
         return AlertDialog(
           title: Text(messageRecords[index][0]),
-          content: SingleChildScrollView(
-            child: Text(loadedMessage),
-          ),
+          content: msgsListWidget(context, loadedMessage, isReverse: false),
           actions: <Widget>[
             TextButton(
               onPressed: () {

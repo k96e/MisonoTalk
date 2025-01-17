@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'storage.dart';
 import 'openai.dart' show completion;
-import 'utils.dart' show snackBarAlert, Config;
+import 'utils.dart' show snackBarAlert, Config, msgsListWidget;
 
 class HistoryPage extends StatefulWidget {
   final Function(String) updateFunc;
@@ -37,7 +37,7 @@ class HistoryPageState extends State<HistoryPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Center(
-          child: ListView.builder(
+        child: ListView.builder(
         itemCount: historys.length,
         itemBuilder: (context, index) {
           return Card(
@@ -48,9 +48,7 @@ class HistoryPageState extends State<HistoryPage> {
               onTap: () {
                 showDialog(context: context, builder: (context) => AlertDialog(
                   title: Text(getTimeStr(index)),
-                  content: SingleChildScrollView(
-                    child: Text(historys[index][2]),
-                  ),
+                  content: msgsListWidget(context,historys[index][2]),
                   actions: [
                     TextButton(
                       onPressed: () {
@@ -71,9 +69,7 @@ class HistoryPageState extends State<HistoryPage> {
               onLongPress: () {
                 showDialog(
                   context: context, builder: (context) => AlertDialog(
-                    content: SingleChildScrollView(
-                      child: Text(historys[index][2]),
-                    ),
+                    content: msgsListWidget(context, historys[index][2]),
                     actions: [
                       TextButton(
                         onPressed: () => Navigator.pop(context),

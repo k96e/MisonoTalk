@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'utils.dart' show Message, jsonToMsg;
+import 'utils.dart' show Message, jsonToMsg, msgsListWidget;
 import 'storage.dart' show setTempHistory;
 
 class RecordMsgs extends StatefulWidget {
@@ -48,9 +48,7 @@ class RecordMsgsState extends State<RecordMsgs> {
                         (BuildContext context) {
                           return AlertDialog(
                             title: const Text('Content'),
-                            content: SingleChildScrollView(
-                              child: Text(widget.msgs[index]),
-                            ),
+                            content: msgsListWidget(context, widget.msgs[index]),
                             actions: <Widget>[
                               TextButton(
                                 onPressed: () {

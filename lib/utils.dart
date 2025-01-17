@@ -204,3 +204,38 @@ class DecimalTextInputFormatter extends TextInputFormatter {
     return newValue;
   }
 }
+
+Widget msgsListWidget(BuildContext context, String jsonMessages, {bool isReverse = true}) {
+  List<Message> messages;
+  try{
+    messages = jsonToMsg(jsonMessages);
+  } catch (e) {
+    return SingleChildScrollView(
+      child: Text("$e\n$jsonMessages"),
+    );
+  }
+  if(isReverse) {
+    messages = messages.reversed.toList();
+  }
+  return SizedBox(
+    height: MediaQuery.of(context).size.height*0.8,
+    width: MediaQuery.of(context).size.width*0.8,
+    child:ListView.builder(
+      itemCount: messages.length,
+      reverse: isReverse,
+      itemBuilder: (context, index) {
+        return Card(
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Text(
+              messages[index].type==Message.timestamp ? 
+                timestampToSystemMsg(messages[index].message) : messages[index].message,
+              style: messages[index].type==Message.assistant ? 
+                const TextStyle(color: Color(0xff1a85ff)) : null,
+            ),
+          )
+        );
+      },
+    )
+  );
+}
