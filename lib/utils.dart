@@ -116,7 +116,7 @@ List<List<String>> parseMsg(String prompt, List<Message> messages) {
     }
     hideFlag = false;
     if (m.type == Message.assistant) {
-      msg.add(["assistant",m.message.replaceAll("\\\\", "\\")]);
+      msg.add(["assistant",formatMsg(m.message,clearMiddle: true)]);
     } else if (m.type == Message.user) {
       msg.add(["user",m.message]);
     } else if (m.type == Message.system) {
@@ -146,6 +146,13 @@ String randomizeBackslashes(String resp) {
   }
 
   return result.toString();
+}
+
+String formatMsg(String input, {bool clearMiddle = false}) {
+  if (clearMiddle) {
+    input = input.replaceAll(RegExp(r'\\+'), '\\');
+  }
+  return input.replaceAll(RegExp(r'^\\+|\\+$'), '');
 }
 
 List<String> splitString(String input, List<String> patterns) {

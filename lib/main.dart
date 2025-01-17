@@ -570,6 +570,7 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
           });
           setState(() {
             inputLock = false;
+            messages.last.message = formatMsg(messages.last.message);
           });
           debugPrint("inputUnlocked");
           if(messages.last.message.contains("\\")){
