@@ -172,10 +172,8 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
   void setScrollPercent(double percent) {
     final maxScroll = scrollController.position.maxScrollExtent;
     final currentScroll = maxScroll * percent;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      scrollController.animateTo(currentScroll,
-          duration: const Duration(milliseconds: 200), curve: Curves.easeOut);
-    });
+    scrollController.animateTo(currentScroll,
+        duration: const Duration(milliseconds: 200), curve: Curves.easeOut);
   }
 
   Future<void> handleAppLink(Map<String,String> payload) async {
@@ -634,12 +632,15 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
       child: Scaffold(
         appBar: AppBar(
           toolbarHeight: 50,
-          title: const DragToMoveArea(
-            child: SizedBox(
-              height: 22,
-              child: Image(
-                image: AssetImage("assets/momotalk.webp"),
-                fit: BoxFit.scaleDown)
+          title: DragToMoveArea(
+            child: GestureDetector (
+              child: const SizedBox(
+                height: 22,
+                child: Image(
+                  image: AssetImage("assets/momotalk.webp"),
+                  fit: BoxFit.scaleDown)
+              ),
+              onDoubleTap: () => setScrollPercent(0),
             )
           ),
           flexibleSpace: DragToMoveArea(
