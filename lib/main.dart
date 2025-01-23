@@ -35,6 +35,7 @@ main() async {
       await windowManager.focus();
     });
   }
+  await StorageService().init();
   NotificationHelper notificationHelper = NotificationHelper();
   await notificationHelper.initialize();
   runApp(const MomotalkApp());
@@ -67,6 +68,7 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
   final textController = TextEditingController();
   final scrollController = ScrollController();
   final notification = NotificationHelper();
+  final storage = StorageService();
   static const String studentName = "未花";
   List<String> welcomeMsgs = [
     "Sensei你终于来啦！\\我可是个乖乖看家的好孩子哦",
@@ -96,12 +98,12 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
 
   Future<void> initialize() async {
     clearMsg();
-    String? msg = await getTempHistory();
+    String? msg = await storage.getTempHistory();
     if (msg != null) {
       loadHistory(msg);
       recordMessages.add(msg);
     }
-    List<Config> configs = await getApiConfigs();
+    List<Config> configs = await storage.getApiConfigs();
     if (configs.isNotEmpty) {
       config = configs[0];
     }
@@ -366,7 +368,7 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
                 } else {
                   controller.text = "Building...";
                   String prompt = "";
-                  List<List<String>> msg = parseMsg(await getPrompt(withExternal: externalPrompt), messages);
+                  List<List<String>> msg = parseMsg(await storage.getPrompt(withExternal: externalPrompt), messages);
                   msg.add(["user", "system instruction:暂停角色扮演，根据上下文，详细描述$studentName给Sensei发送的图片内容或是当前Sensei所看到的场景"]);
                   completion(config, msg, (resp){
                     const String a="我无法继续作为",b="代替玩家言行";
@@ -535,7 +537,7 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
       inputLock = true;
       debugPrint("inputLocked");
     });
-    List<List<String>> msg = parseMsg(await getPrompt(withExternal: externalPrompt), messages);
+    List<List<String>> msg = parseMsg(await storage.getPrompt(withExternal: externalPrompt), messages);
     logMsg(msg.sublist(1));
     bool notificationSent= false;
     try {
@@ -573,7 +575,7 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
           debugPrint("inputUnlocked");
           if(messages.last.message.contains("\\")){
             String msg = msgListToJson(messages);
-            setTempHistory(msg);
+            storage.setTempHistory(msg);
             recordMessages.add(msg);
           }
           if(!isForeground && !notificationSent){
@@ -745,12 +747,12 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
                     ),
                   );
                 } else if (value == 'Save') {
-                  String prompt = await getPrompt(withExternal: externalPrompt);
+                  String prompt = await storage.getPrompt(withExternal: externalPrompt);
                   if(!context.mounted) return;
                   String? value = await namingHistory(context, "", config, studentName, parseMsg(prompt, messages));
                   if (value != null) {
                     debugPrint(value);
-                    addHistory(msgListToJson(messages),value);
+                    storage.addHistory(msgListToJson(messages),value);
                     if(!context.mounted) return;
                     snackBarAlert(context, "已保存");
                   } else {
@@ -804,7 +806,7 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
                   });
                   snackBarAlert(context, "ExtPrompt ${externalPrompt?"on":"off"}");
                 }else if (value == 'Msgs') {
-                  int promptLength = (await getPrompt(withExternal: externalPrompt)).length;
+                  int promptLength = (await storage.getPrompt(withExternal: externalPrompt)).length;
                   if(!context.mounted) return;
                   Navigator.push(
                     context,

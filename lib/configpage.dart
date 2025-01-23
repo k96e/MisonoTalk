@@ -18,6 +18,7 @@ class ConfigPage extends StatefulWidget {
 class ConfigPageState extends State<ConfigPage> {
   String? selectedConfig;
   List<Config> apiConfigs = [];
+  final storage = StorageService();
   TextEditingController nameController = TextEditingController();
   TextEditingController urlController = TextEditingController();
   TextEditingController keyController = TextEditingController();
@@ -30,7 +31,7 @@ class ConfigPageState extends State<ConfigPage> {
   @override
   void initState() {
     super.initState();
-    getApiConfigs().then((List<Config> value) {
+    storage.getApiConfigs().then((List<Config> value) {
       setState(() {
         apiConfigs = value;
         for (Config c in apiConfigs) {
@@ -79,7 +80,7 @@ class ConfigPageState extends State<ConfigPage> {
                 setState(() {
                   for (Config c in apiConfigs) {
                     if (c.name == config) {
-                      deleteApiConfig(config);
+                      storage.deleteApiConfig(config);
                       apiConfigs.remove(c);
                       if (selectedConfig == config) {
                         if (apiConfigs.isNotEmpty) {
@@ -149,7 +150,7 @@ class ConfigPageState extends State<ConfigPage> {
                     }
                   }
                 });
-                setCurrentApiConfig(selectedConfig!);
+                storage.setCurrentApiConfig(selectedConfig!);
               },
             ),
             const SizedBox(height: 20),
@@ -270,8 +271,8 @@ class ConfigPageState extends State<ConfigPage> {
                             ? null
                             : maxTokensController.text,
                       );
-                      setApiConfig(newConfig);
-                      setCurrentApiConfig(nameController.text);
+                      storage.setApiConfig(newConfig);
+                      storage.setCurrentApiConfig(nameController.text);
                       setState(() {
                         apiConfigs.add(newConfig);
                         selectedConfig = nameController.text;
@@ -322,9 +323,9 @@ class ConfigPageState extends State<ConfigPage> {
                 ElevatedButton(
                   child: const Text('备份'),
                   onPressed: () async {
-                    String j = await convertToJson();
+                    String j = await storage.convertToJson();
                     debugPrint(j);
-                    if(await writeFile(j)){
+                    if(await storage.writeFile(j)){
                       snackBarAlert(context, "备份成功");
                     } else {
                       snackBarAlert(context, "备份失败");
@@ -334,11 +335,11 @@ class ConfigPageState extends State<ConfigPage> {
                 ElevatedButton(
                   child: const Text('恢复'),
                   onPressed: () async {
-                    String? j = await pickFile();
+                    String? j = await storage.pickFile();
                     if (j != null) {
                       try {
                         debugPrint(j);
-                        await restoreFromJson(j);
+                        await storage.restoreFromJson(j);
                         snackBarAlert(context, "恢复成功");
                       } catch (e) {
                         snackBarAlert(context, "恢复失败");

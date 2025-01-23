@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'storage.dart' show getPrompt, setPrompt;
+import 'storage.dart';
 
 class PromptEditor extends StatefulWidget {
   const PromptEditor({super.key});
@@ -10,10 +10,11 @@ class PromptEditor extends StatefulWidget {
 
 class PromptEditorState extends State<PromptEditor> {
   TextEditingController controller = TextEditingController();
+  final storage = StorageService();
   @override
   void initState() {
     super.initState();
-    getPrompt(isRaw: true).then((String value) {
+    storage.getPrompt(isRaw: true).then((String value) {
       controller.text = value;
     });
   }
@@ -32,14 +33,14 @@ class PromptEditorState extends State<PromptEditor> {
             children: [
               ElevatedButton(
                 onPressed: () async{
-                  controller.text = await getPrompt(isDefault: true, isRaw: true);
+                  controller.text = await storage.getPrompt(isDefault: true, isRaw: true);
                 },
                 child: const Text('恢复'),
               ),
               const SizedBox(width: 8),
               ElevatedButton(
                 onPressed: () {
-                  setPrompt(controller.text);
+                  storage.setPrompt(controller.text);
                   Navigator.pop(context);
                 },
                 child: const Text('保存'),

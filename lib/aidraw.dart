@@ -6,7 +6,7 @@ import 'dart:convert';
 import 'utils.dart';
 import 'openai.dart';
 import 'notifications.dart';
-import 'storage.dart' show setDrawUrl, getDrawUrl, getSdConfig, setSdConfig;
+import 'storage.dart';
 
 class AiDraw extends StatefulWidget {
   final String? msg;
@@ -28,6 +28,7 @@ class AiDrawState extends State<AiDraw> with WidgetsBindingObserver{
   bool gptBusy = false, sdBusy = false, showLog = false;
   bool isForeground = true;
   final notification = NotificationHelper();
+  final storage = StorageService();
   CancelToken cancelToken = CancelToken();
   late SdConfig sdConfig;
 
@@ -380,7 +381,7 @@ class AiDrawState extends State<AiDraw> with WidgetsBindingObserver{
               steps: int.parse(sdStep.text),
               cfg: int.parse(sdCFG.text),
             );
-            setSdConfig(sdConfig);
+            storage.setSdConfig(sdConfig);
             Navigator.of(context).pop();
           },
           child: const Text('OK')
@@ -403,14 +404,14 @@ class AiDrawState extends State<AiDraw> with WidgetsBindingObserver{
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    getDrawUrl().then((value) {
+    storage.getDrawUrl().then((value) {
         if(value == null) return;
         apiController.text = value;
     });
     if(widget.msg != null) {
       buildPrompt();
     }
-    getSdConfig().then((memConfig) {
+    storage.getSdConfig().then((memConfig) {
       if(memConfig.prompt.isEmpty) {
         memConfig.prompt = '1girl, mika (blue archive), misono mika, blue archive, halo, pink halo, pink hair, yellow eyes, angel, angel wings, feathered wings, white wings, VERB, masterpiece, best quality, newest, absurdres, highres, sensitive';
       }
@@ -480,7 +481,7 @@ class AiDrawState extends State<AiDraw> with WidgetsBindingObserver{
             TextField(
               controller: apiController,
               decoration: const InputDecoration(labelText: "api url"),
-              onSubmitted: (value) => setDrawUrl(value),
+              onSubmitted: (value) => storage.setDrawUrl(value),
             ),
             const SizedBox(height: 8),
             Row(

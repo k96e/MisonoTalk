@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'utils.dart' show Message, jsonToMsg, msgsListWidget;
-import 'storage.dart' show setTempHistory;
+import 'storage.dart';
 
 class RecordMsgs extends StatefulWidget {
   final List<String> msgs;
@@ -12,6 +12,7 @@ class RecordMsgs extends StatefulWidget {
 }
 
 class RecordMsgsState extends State<RecordMsgs> {
+  final storage = StorageService();
 
   @override
   void initState() {
@@ -59,7 +60,7 @@ class RecordMsgsState extends State<RecordMsgs> {
                               TextButton(
                                 onPressed: () {
                                   widget.updateMsg(widget.msgs[index]);
-                                  setTempHistory(widget.msgs[index]);
+                                  storage.setTempHistory(widget.msgs[index]);
                                   Navigator.of(context).popUntil((route) => route.isFirst);
                                 }, 
                                 child: const Text('确定')

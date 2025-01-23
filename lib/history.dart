@@ -12,12 +12,12 @@ class HistoryPage extends StatefulWidget {
 }
 
 class HistoryPageState extends State<HistoryPage> {
-
+  final storage = StorageService();
   List<List<String>> historys = [];
   @override
   void initState() {
     super.initState();
-    getHistorys().then((List<List<String>> results) {
+    storage.getHistorys().then((List<List<String>> results) {
       setState(() {
         historys = results;
         historys.sort((a, b) => int.parse(b[1]).compareTo(int.parse(a[1])));
@@ -89,7 +89,7 @@ class HistoryPageState extends State<HistoryPage> {
                               ),
                               TextButton(
                                 onPressed: () {
-                                  deleteHistory("history_${historys[index][1]}");
+                                  storage.deleteHistory("history_${historys[index][1]}");
                                   setState(() {
                                     historys.removeAt(index);
                                   });

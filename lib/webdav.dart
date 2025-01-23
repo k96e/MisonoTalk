@@ -20,6 +20,7 @@ class WebdavPageState extends State<WebdavPage> {
   TextEditingController urlController = TextEditingController();
   TextEditingController usernameController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
+  final storage = StorageService();
   double progress = 0;
   List<List<String>> messageRecords = [];
 
@@ -81,7 +82,7 @@ class WebdavPageState extends State<WebdavPage> {
           progress = 1;
         });
         String msg = utf8.decode(data);
-        setTempHistory(msg);
+        storage.setTempHistory(msg);
         widget.onRefresh(msg);
         if(!context.mounted) return;
         snackBarAlert(context, "Restore OK");
@@ -201,7 +202,7 @@ class WebdavPageState extends State<WebdavPage> {
   @override
   void initState() {
     super.initState();
-    getWebdav().then((webdav) {
+    storage.getWebdav().then((webdav) {
       if (webdav[0].isNotEmpty) {
         setState(() {
           urlController.text = webdav[0];
@@ -245,7 +246,7 @@ class WebdavPageState extends State<WebdavPage> {
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 ElevatedButton(child: const Text('保存'), onPressed: () async {
-                  await setWebdav(urlController.text, usernameController.text, passwordController.text);
+                  await storage.setWebdav(urlController.text, usernameController.text, passwordController.text);
                   if(!context.mounted) return;
                   snackBarAlert(context, 'Saved');
                 }),
