@@ -581,7 +581,7 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
           if(!isForeground && !notificationSent){
             isAutoNotification = true;
             notificationSent = true;
-            notification.showNotification(title: "Done", body: "" ,showAvator: false);
+            notification.showNotification(title: "Done", body: "" ,showAvatar: false);
           }
           lastMessages = null;
         }, (err){
@@ -592,7 +592,7 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
           errDialog(err.toString());
           if(!isForeground){
             isAutoNotification = true;
-            notification.showNotification(title: "Error", body: "", showAvator: false);
+            notification.showNotification(title: "Error", body: "", showAvatar: false);
           }
         });
     } catch (e) {
@@ -605,7 +605,7 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
       errDialog(e.toString());
       if(!isForeground){
         isAutoNotification = true;
-        notification.showNotification(title: "Error", body: "", showAvator: false);
+        notification.showNotification(title: "Error", body: "", showAvatar: false);
       }
     }
   }

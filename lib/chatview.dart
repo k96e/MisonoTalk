@@ -148,7 +148,7 @@ class ChatBubbleImage extends StatelessWidget {
         const Padding(
             padding: EdgeInsets.only(top: 7),
             child: CircleAvatar(
-              backgroundImage: AssetImage("assets/head.webp"),
+              backgroundImage: AssetImage("assets/avatar.png"),
               radius: 25,
             )),
         const SizedBox(width: 10),

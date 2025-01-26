@@ -281,7 +281,7 @@ class AiDrawState extends State<AiDraw> with WidgetsBindingObserver{
           notification.showNotification(
             title: 'AiDraw',
             body: 'Drawing completed',
-            showAvator: false
+            showAvatar: false
           );
         }
       }
