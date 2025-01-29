@@ -574,25 +574,27 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
           WidgetsBinding.instance.addPostFrameCallback((_) {
             setScrollPercent(1.0);
           });
-          if(messages.last.type == Message.assistant && reasoningContent.isNotEmpty){
+          setState(() {
+            inputLock = false;
+          });
+          if(!isForeground && !notificationSent){
+            isAutoNotification = true;
+            notificationSent = true;
+            notification.showNotification(title: "Done", body: "" ,showAvatar: false);
+          }
+          if(messages.last.type!=Message.assistant) return;
+          if(reasoningContent.isNotEmpty){
             messages.last.reasoningContent = reasoningContent;
           }
           setState(() {
-            inputLock = false;
             messages.last.message = formatMsg(messages.last.message);
           });
-          debugPrint("inputUnlocked");
           if(messages.last.message.contains("\\")){
             String msg = msgListToJson(messages);
             storage.setTempHistory(msg);
             if(messages.last.type == Message.assistant) {
               recordMessages.add(msg);
             }
-          }
-          if(!isForeground && !notificationSent){
-            isAutoNotification = true;
-            notificationSent = true;
-            notification.showNotification(title: "Done", body: "" ,showAvatar: false);
           }
           lastMessages = null;
         }, (err){

@@ -60,37 +60,38 @@ Future<void> completion(Config config, List<List<String>> message,
   //print(data);
   String reasoningContent = '';
   EventFlux.instance.connect(EventFluxConnectionType.post,
-      "${removeTailSlash(config.baseUrl)}/chat/completions",
-      header: {
-        'Authorization': 'Bearer ${config.apiKey}',
-        'Content-Type': 'application/json',
-      },
-      body: data,
-      onSuccessCallback: (EventFluxResponse? response) {
-        response?.stream?.listen((data) {
-          try {
-            var decoded = jsonDecode(data.data);
-            if(config.model=="deepseek-reasoner"&&decoded["choices"][0]["delta"]["reasoning_content"]!=null){
-              reasoningContent += decoded["choices"][0]["delta"]["reasoning_content"];
-            }
-            if (decoded["choices"][0]["delta"]["content"] != null) {
-              onEevent(decoded["choices"][0]["delta"]["content"]);
-            }
-          } catch (e) {
-            if (data.data.contains("DONE")) {
-              onDone(reasoningContent);
-            } else if(e is FormatException) {
-              if(data.data.isEmpty && config.model=="deepseek-reasoner"){
-                // print("deepseek empty response");
-              } else {
-                onErr("Unexpected response: \n${data.data}");
-              }
-            } else{
-              onErr(e.toString());
-            }
+    "${removeTailSlash(config.baseUrl)}/chat/completions",
+    header: {
+      'Authorization': 'Bearer ${config.apiKey}',
+      'Content-Type': 'application/json',
+    },
+    body: data,
+    onSuccessCallback: (EventFluxResponse? response) {
+      response?.stream?.listen((data) {
+        try {
+          var decoded = jsonDecode(data.data);
+          if(config.model=="deepseek-reasoner"&&decoded["choices"][0]["delta"]["reasoning_content"]!=null){
+            reasoningContent += decoded["choices"][0]["delta"]["reasoning_content"];
           }
-        });
-      },
-      onConnectionClose: () => onDone(""),
-      onError: (oops) => onErr(oops.message??"no message"));
+          if (decoded["choices"][0]["delta"]["content"] != null) {
+            onEevent(decoded["choices"][0]["delta"]["content"]);
+          }
+        } catch (e) {
+          if (data.data.contains("DONE")) {
+            // onDone(reasoningContent);
+          } else if(e is FormatException) {
+            if(data.data.isEmpty && config.model=="deepseek-reasoner"){
+              // print("deepseek empty response");
+            } else {
+              onErr("Unexpected response: \n${data.data}");
+            }
+          } else{
+            onErr(e.toString());
+          }
+        }
+      });
+    },
+    onConnectionClose: () => onDone(reasoningContent),
+    onError: (oops) => onErr(oops.message??"no message")
+  );
 }
