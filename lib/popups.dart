@@ -3,7 +3,7 @@ import 'notifications.dart';
 import 'dart:async' show Timer;
 
 void assistantPopup(BuildContext context, String msg, LongPressStartDetails details,
-                    String stuName, Function(String) onEdited) {
+                    String stuName, Function(String) onEdited, String? reasoningContent) {
   final RenderBox overlay = Overlay.of(context).context.findRenderObject() as RenderBox;
   final RelativeRect position = RelativeRect.fromRect(
     Rect.fromLTWH(details.globalPosition.dx, details.globalPosition.dy, 0, 0),
@@ -19,6 +19,8 @@ void assistantPopup(BuildContext context, String msg, LongPressStartDetails deta
       const PopupMenuItem(value: 1, child: Text('创建通知')),
       if (msg.split("$stuName：").length > 3) 
         const PopupMenuItem(value: 3, child: Text('格式化')),
+      if (reasoningContent != null)
+        const PopupMenuItem(value: 4, child: Text('查看推理')),
     ],
   ).then((value) {
     if (value == 1) {
@@ -89,6 +91,23 @@ void assistantPopup(BuildContext context, String msg, LongPressStartDetails deta
       });
     } else if (value == 3) {
       onEdited("FORMAT");
+    } else if (value == 4) {
+      showDialog(context: context, builder: (context) {
+        return AlertDialog(
+          title: const Text('Reasoning Content'),
+          content: SingleChildScrollView(
+            child: Text(reasoningContent!),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('关闭'),
+            )
+          ],
+        );
+      });
     }
   });
 }

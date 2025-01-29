@@ -10,13 +10,15 @@ class Message {
   String message;
   int type;
   bool isHide = false;
+  String? reasoningContent;
   static const int assistant = 1;
   static const int user = 2;
   static const int system = 3;
   static const int timestamp = 4;
   static const int image = 5;
 
-  Message({required this.message, required this.type, this.isHide = false});
+  Message({required this.message, required this.type, 
+    this.isHide = false, this.reasoningContent});
 
   Map<String, dynamic> toJson() {
     return {
@@ -41,7 +43,8 @@ class Message {
 List<Message> copyMsgs(List<Message> msgs) {
   List<Message> newMsgs = [];
   for (var m in msgs) {
-    newMsgs.add(Message(message: m.message, type: m.type, isHide: m.isHide));
+    newMsgs.add(Message(message: m.message, type: m.type, 
+      isHide: m.isHide, reasoningContent: m.reasoningContent));
   }
   return newMsgs;
 }

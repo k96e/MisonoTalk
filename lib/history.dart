@@ -146,7 +146,7 @@ Future<String?> namingHistory(BuildContext context,String timeStr,Config config,
             await completion(config, msg, (chunk){
               result += chunk;
               controller.text = result;
-            }, (){
+            }, (_){
               snackBarAlert(context, "完成");
             }, (e){
               showDialog(

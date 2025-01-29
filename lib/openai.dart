@@ -8,9 +8,36 @@ String removeTailSlash(String input) {
       : input.trimRight();
 }
 
-Future<void> completion(Config config, List<List<String>> message,
-    Function onEevent, Function onDone, Function onErr) async {
+List<List<String>> mergeMessages(List<List<String>> messages) {
+  if (messages.isEmpty) return [];
+  List<List<String>> result = [];
+  List<String>? current = messages[0];
+  for (int i = 1; i < messages.length; i++) {
+    if (messages[i][0] == "system"){
+      messages[i][0] = "user";
+      messages[i][1] = "*${messages[i][1]}*";
+    }
+    if (messages[i][0] == current?[0]) {
+      current?[1] += '\\${messages[i][1]}';
+    } else {
+      result.add(current!);
+      current = messages[i];
+    }
+  }
+  result.add(current!);
+  if (result[1][0] == "assistant") {
+    result.removeAt(1);
+  }
+  return result;
+}
 
+Future<void> completion(Config config, List<List<String>> message,
+    Function(String) onEevent, 
+    Function(String reasoningContent) onDone, 
+    Function(String) onErr) async {
+  if(config.model=='deepseek-reasoner'){
+    message = mergeMessages(message);
+  }
   Map<String, dynamic> data = {
     'model': config.model,
     'messages':
@@ -30,7 +57,8 @@ Future<void> completion(Config config, List<List<String>> message,
     if (config.maxTokens != null && int.tryParse(config.maxTokens!) != null)
       'max_tokens': int.parse(config.maxTokens!),
   };
-  // print(data);
+  //print(data);
+  String reasoningContent = '';
   EventFlux.instance.connect(EventFluxConnectionType.post,
       "${removeTailSlash(config.baseUrl)}/chat/completions",
       header: {
@@ -41,15 +69,28 @@ Future<void> completion(Config config, List<List<String>> message,
       onSuccessCallback: (EventFluxResponse? response) {
         response?.stream?.listen((data) {
           try {
-            onEevent(json.decode(data.data)["choices"][0]["delta"]["content"]);
+            var decoded = jsonDecode(data.data);
+            if(config.model=="deepseek-reasoner"&&decoded["choices"][0]["delta"]["reasoning_content"]!=null){
+              reasoningContent += decoded["choices"][0]["delta"]["reasoning_content"];
+            }
+            if (decoded["choices"][0]["delta"]["content"] != null) {
+              onEevent(decoded["choices"][0]["delta"]["content"]);
+            }
           } catch (e) {
             if (data.data.contains("DONE")) {
-              onDone();
+              onDone(reasoningContent);
             } else if(e is FormatException) {
-              onErr("Unexpected response: \n${data.data}");
+              if(data.data.isEmpty && config.model=="deepseek-reasoner"){
+                // print("deepseek empty response");
+              } else {
+                onErr("Unexpected response: \n${data.data}");
+              }
+            } else{
+              onErr(e.toString());
             }
           }
         });
       },
-      onError: (oops) => onErr(oops.message));
+      onConnectionClose: () => onDone(""),
+      onError: (oops) => onErr(oops.message??"no message"));
 }

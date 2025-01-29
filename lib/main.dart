@@ -274,7 +274,7 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
         setState(() {
           messages[index].message = edited;
         });
-      });
+      },messages[index].reasoningContent);
     } else if(messages[index].type == Message.user){
       userPopup(context, messages[index].message, details, (String edited,bool isResend){
         debugPrint("edited: $edited");
@@ -377,7 +377,7 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
                       prompt = prompt.replaceAll(RegExp('^$a.*?$b'), "");
                     }
                     controller.text = prompt;
-                  }, (){
+                  }, (_){
                     debugPrint("done.");
                     setState(() {
                       isBuild = true;
@@ -537,6 +537,12 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
       inputLock = true;
       debugPrint("inputLocked");
     });
+    if(config.model=="deepseek-reasoner"&&messages.isNotEmpty&&messages[0].type == Message.assistant){
+      setState(() {
+        messages.removeAt(0);
+      });
+      snackBarAlert(context, "remved first assistant message for deepseek-r1");
+    }
     List<List<String>> msg = parseMsg(await storage.getPrompt(withExternal: externalPrompt), messages);
     logMsg(msg.sublist(1));
     bool notificationSent= false;
@@ -563,11 +569,14 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
               }
             }
           }
-        }, (){
+        }, (String reasoningContent){
           debugPrint("done.");
           WidgetsBinding.instance.addPostFrameCallback((_) {
             setScrollPercent(1.0);
           });
+          if(messages.last.type == Message.assistant && reasoningContent.isNotEmpty){
+            messages.last.reasoningContent = reasoningContent;
+          }
           setState(() {
             inputLock = false;
             messages.last.message = formatMsg(messages.last.message);
@@ -576,7 +585,9 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
           if(messages.last.message.contains("\\")){
             String msg = msgListToJson(messages);
             storage.setTempHistory(msg);
-            recordMessages.add(msg);
+            if(messages.last.type == Message.assistant) {
+              recordMessages.add(msg);
+            }
           }
           if(!isForeground && !notificationSent){
             isAutoNotification = true;
@@ -588,6 +599,7 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
           setState(() {
             inputLock = false;
           });
+          EventFlux.instance.disconnect();
           debugPrint("inputUnlocked");
           errDialog(err.toString());
           if(!isForeground){
@@ -601,6 +613,7 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
       });
       debugPrint("inputUnlocked");
       debugPrint(e.toString());
+      EventFlux.instance.disconnect();
       if(!mounted) return;
       errDialog(e.toString());
       if(!isForeground){
