@@ -541,7 +541,7 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
       setState(() {
         messages.removeAt(0);
       });
-      snackBarAlert(context, "remved first assistant message for deepseek-r1");
+      snackBarAlert(context, "remove first assistant message for deepseek-r1");
     }
     List<List<String>> msg = parseMsg(await storage.getPrompt(withExternal: externalPrompt), messages);
     logMsg(msg.sublist(1));
