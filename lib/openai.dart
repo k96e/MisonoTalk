@@ -73,15 +73,15 @@ Future<void> completion(Config config, List<List<String>> message,
           if(config.model=="deepseek-reasoner"&&decoded["choices"][0]["delta"]["reasoning_content"]!=null){
             reasoningContent += decoded["choices"][0]["delta"]["reasoning_content"];
           }
-          if (decoded["choices"][0]["delta"]["content"] != null) {
+          if (decoded["choices"]?[0]["delta"]["content"] != null) {
             onEevent(decoded["choices"][0]["delta"]["content"]);
           }
         } catch (e) {
           if (data.data.contains("DONE")) {
             // onDone(reasoningContent);
           } else if(e is FormatException) {
-            if(data.data.isEmpty && config.model=="deepseek-reasoner"){
-              // print("deepseek empty response");
+            if(data.data.isEmpty){
+              // print("empty response");
             } else {
               onErr("Unexpected response: \n${data.data}");
             }
