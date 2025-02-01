@@ -429,9 +429,21 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
         splitCount = 0;
         messages.add(Message(message: response, type: Message.assistant));
       } else {
-        const String a="我无法继续作为",b="代替玩家言行";
-        if(response.startsWith(a) && response.contains(b)){
-          response = response.replaceAll(RegExp('^$a.*?$b'), "");
+        if(externalPrompt){
+          const String a="我无法继续作为",b="代替玩家言行";
+          if(response.startsWith(a) && response.contains(b)){
+            response = response.replaceAll(RegExp('^$a.*?$b'), "");
+          }
+        }
+        if(response.startsWith("<think>")){
+          if(response.contains("</think>")){
+            RegExp thinkPattern = RegExp(r'<think>(.*?)</think>(.*)');
+            final match = thinkPattern.firstMatch(response);
+            messages.last.reasoningContent = match?.group(1);
+            response = match?.group(2) ?? "Thinking...";
+          } else {
+            response = "Thinking...";
+          }
         }
         messages.last.message = response;
       }
@@ -555,10 +567,21 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
           response += resp;
           updateResponse(response);
           if(!isForeground && !notificationSent && response.contains("\\")){
+            if(response.contains("<think>") && !response.contains("</think>")) return;
             List<String> msgs = response.split("\\");
-            for(int i=0;i<msgs.length;i++){
+            int i=0;
+            if(response.contains("</think>")){
+              for(i=0;i<msgs.length;i++){
+                if(msgs[i].contains("</think>")){
+                  i++;
+                  break;
+                }
+              }
+            }
+            for(;i<msgs.length;i++){
               if(msgs[i].isEmpty || msgs[i].startsWith("*")||
-                msgs[i].startsWith("（")||msgs[i].startsWith("我无法继续")){
+                msgs[i].startsWith("（")||msgs[i].startsWith("我无法继续")||
+                msgs[i].startsWith("<")){
                 continue;
               }
               if(i!=msgs.length-1){
