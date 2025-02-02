@@ -7,7 +7,7 @@ import 'package:window_manager/window_manager.dart';
 import 'package:eventflux/eventflux.dart';
 import 'package:app_links/app_links.dart';
 import 'dart:io' show Platform;
-import 'dart:convert' show base64, utf8;
+import 'dart:convert' show base64, jsonDecode, utf8;
 import 'chatview.dart';
 import 'configpage.dart';
 import 'notifications.dart';
@@ -179,6 +179,43 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
   }
 
   Future<void> handleAppLink(Map<String,String> payload) async {
+    if(payload.containsKey("c")){
+      late Config c;
+      try {
+        Map<String,String> configMap = Map<String,String>.from(
+          jsonDecode(utf8.decode(base64.decode(payload['c']!))));
+        c = Config.fromJson(configMap);
+      } catch (e) {
+        debugPrint(e.toString());
+        return;
+      }
+      showDialog(context: context, builder: (context){
+        return AlertDialog(
+          title: const Text("App Link"),
+          content: Text("是否加载新配置？\n${c.name}\n${c.baseUrl}\n${c.apiKey}\n${c.model}"),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                Navigator.push(context,
+                  MaterialPageRoute(builder: (context) => 
+                    ConfigPage(updateFunc: updateConfig, currentConfig: c)
+                  )
+                );
+              },
+              child: const Text('Yes'),
+            ),
+          ],
+        );
+      });
+      return;
+    }
     late List<Message> msgs;
     if(!payload.containsKey("m")) return;
     try {

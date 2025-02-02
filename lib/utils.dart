@@ -70,6 +70,15 @@ class Config {
     'temperature: $temperature, frequencyPenalty: $frequencyPenalty, '
     'presencePenalty: $presencePenalty, maxTokens: $maxTokens}';
   }
+
+  factory Config.fromJson(Map<String, dynamic> json) {
+    return Config(
+      name: json['name'],
+      baseUrl: json['baseUrl'],
+      apiKey: json['apiKey'],
+      model: json['model']
+    );
+  }
 }
 
 class SdConfig {
