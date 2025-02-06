@@ -414,11 +414,12 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
                       prompt = prompt.replaceAll(RegExp('^$a.*?$b'), "");
                     }
                     controller.text = prompt;
-                  }, (_){
+                  }, (){
                     debugPrint("done.");
                     setState(() {
                       isBuild = true;
                     });
+                    controller.text = prompt.split("</think>").last;
                   }, (err){
                     errDialog(err.toString(),canRetry: false);
                   });
@@ -479,7 +480,7 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
             messages.last.reasoningContent = match?.group(1);
             response = match?.group(2) ?? "Thinking...";
           } else {
-            response = "Thinking...";
+            response = "Thinking... ${response.length-7}";
           }
         }
         messages.last.message = response;
@@ -629,7 +630,7 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
               }
             }
           }
-        }, (String reasoningContent){
+        }, (){
           debugPrint("done.");
           WidgetsBinding.instance.addPostFrameCallback((_) {
             setScrollPercent(1.0);
@@ -643,9 +644,6 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
             notification.showNotification(title: "Done", body: "" ,showAvatar: false);
           }
           if(messages.last.type!=Message.assistant) return;
-          if(reasoningContent.isNotEmpty){
-            messages.last.reasoningContent = reasoningContent;
-          }
           setState(() {
             messages.last.message = formatMsg(messages.last.message);
           });

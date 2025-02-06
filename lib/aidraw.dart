@@ -59,11 +59,11 @@ class AiDrawState extends State<AiDraw> with WidgetsBindingObserver{
         result += data;
         promptController.text = result;
       },
-      (_) {
+      () {
         setState(() {
           gptBusy = false;
+          promptController.text = result.split("</think>").last;
         });
-        promptController.text = result;
       },
       (String error) {
         setState(() {

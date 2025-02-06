@@ -33,7 +33,7 @@ List<List<String>> mergeMessages(List<List<String>> messages) {
 
 Future<void> completion(Config config, List<List<String>> message,
     Function(String) onEevent, 
-    Function(String reasoningContent) onDone, 
+    Function() onDone, 
     Function(String) onErr) async {
   if(config.model=='deepseek-reasoner'){
     message = mergeMessages(message);
@@ -58,7 +58,7 @@ Future<void> completion(Config config, List<List<String>> message,
       'max_tokens': int.parse(config.maxTokens!),
   };
   //print(data);
-  String reasoningContent = '';
+  bool isReasoning = false;
   EventFlux.instance.connect(EventFluxConnectionType.post,
     "${removeTailSlash(config.baseUrl)}/chat/completions",
     header: {
@@ -70,11 +70,21 @@ Future<void> completion(Config config, List<List<String>> message,
       response?.stream?.listen((data) {
         try {
           var decoded = jsonDecode(data.data);
-          if(config.model=="deepseek-reasoner"&&decoded["choices"][0]["delta"]["reasoning_content"]!=null){
-            reasoningContent += decoded["choices"][0]["delta"]["reasoning_content"];
+          if(decoded["choices"]?[0]["delta"]["reasoning_content"]!=null){
+            if(!isReasoning){
+              isReasoning = true;
+              onEevent('<think>${decoded["choices"][0]["delta"]["reasoning_content"]}');
+            }
+            onEevent(decoded["choices"][0]["delta"]["reasoning_content"]);
+            return;
           }
           if (decoded["choices"]?[0]["delta"]["content"] != null) {
-            onEevent(decoded["choices"][0]["delta"]["content"]);
+            if(isReasoning){
+              isReasoning = false;
+              onEevent('</think>${decoded["choices"][0]["delta"]["content"]}');
+            }else{
+              onEevent(decoded["choices"][0]["delta"]["content"]);
+            }
           }
         } catch (e) {
           if (data.data.contains("DONE")) {
@@ -91,7 +101,7 @@ Future<void> completion(Config config, List<List<String>> message,
         }
       });
     },
-    onConnectionClose: () => onDone(reasoningContent),
+    onConnectionClose: () => onDone(),
     onError: (oops) => onErr(oops.message??"no message")
   );
 }
