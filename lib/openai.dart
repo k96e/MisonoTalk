@@ -59,6 +59,7 @@ Future<void> completion(Config config, List<List<String>> message,
   };
   //print(data);
   bool isReasoning = false;
+  bool hasContent = false;
   EventFlux.instance.connect(EventFluxConnectionType.post,
     "${removeTailSlash(config.baseUrl)}/chat/completions",
     header: {
@@ -79,6 +80,7 @@ Future<void> completion(Config config, List<List<String>> message,
             return;
           }
           if (decoded["choices"]?[0]["delta"]["content"] != null) {
+            hasContent = true;
             if(isReasoning){
               isReasoning = false;
               onEevent('</think>${decoded["choices"][0]["delta"]["content"]}');
@@ -101,7 +103,13 @@ Future<void> completion(Config config, List<List<String>> message,
         }
       });
     },
-    onConnectionClose: () => onDone(),
+    onConnectionClose: () {
+      if(hasContent){
+        onDone();
+      }else{
+        onErr("Server response is empty");
+      }
+    },
     onError: (oops) => onErr(oops.message??"no message")
   );
 }
