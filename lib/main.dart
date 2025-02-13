@@ -378,6 +378,7 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
 
   void sdWorkflow() async {
     bool isBuild = false;
+    bool buildLock = false;
     TextEditingController controller = TextEditingController();
     showDialog(context: context, builder: (context){
       return StatefulBuilder(builder: (context, setState) {
@@ -387,6 +388,17 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
             maxLines: null,
             minLines: 1,
             controller: controller,
+            onChanged: (value) {
+              if(value.isNotEmpty && !isBuild){
+                setState(() {
+                  isBuild = true;
+                });
+              } else if(value.isEmpty && isBuild){
+                setState(() {
+                  isBuild = false;
+                });
+              }
+            },
             decoration: const InputDecoration(
               hintText: "Build prompt?",
             ),
@@ -403,6 +415,8 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
                 if(isBuild){
                   Navigator.of(context).pop(controller.text);
                 } else {
+                  if(buildLock) return;
+                  buildLock = true;
                   controller.text = "Building...";
                   String prompt = "";
                   List<List<String>> msg = parseMsg(await storage.getPrompt(withExternal: externalPrompt), messages);
@@ -415,6 +429,7 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
                     }
                     controller.text = prompt;
                   }, (){
+                    buildLock = false;
                     debugPrint("done.");
                     setState(() {
                       isBuild = true;

@@ -18,8 +18,8 @@ class AiDraw extends StatefulWidget {
 }
 
 class AiDrawState extends State<AiDraw> with WidgetsBindingObserver{
-  TextEditingController logController = TextEditingController(text: '');
-  TextEditingController promptController = TextEditingController(text: '');
+  TextEditingController logController = TextEditingController();
+  TextEditingController promptController = TextEditingController();
   TextEditingController apiController = TextEditingController();
   String lastModel = "";
   String? imageUrl;
@@ -56,13 +56,13 @@ class AiDrawState extends State<AiDraw> with WidgetsBindingObserver{
     String result = '';
     await completion(widget.config, messages,
       (String data) {
-        result += data;
+        result += data.replaceAll("\n", " ");
         promptController.text = result;
       },
       () {
         setState(() {
           gptBusy = false;
-          promptController.text = result.split("</think>").last;
+          promptController.text = result.split("</think>").last.trim();
         });
       },
       (String error) {
@@ -514,6 +514,8 @@ class AiDrawState extends State<AiDraw> with WidgetsBindingObserver{
             TextField(
               controller: promptController,
               decoration: InputDecoration(labelText: gptBusy?'Building prompt':'Prompt'),
+              maxLines: 3,
+              minLines: 1,
             ),
             Expanded(
               child: (imageUrl == null) || showLog
