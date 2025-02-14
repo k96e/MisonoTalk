@@ -602,12 +602,6 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
       inputLock = true;
       debugPrint("inputLocked");
     });
-    if(config.model=="deepseek-reasoner"&&messages.isNotEmpty&&messages[0].type == Message.assistant){
-      setState(() {
-        messages.removeAt(0);
-      });
-      snackBarAlert(context, "remove first assistant message for deepseek-r1");
-    }
     List<List<String>> msg = parseMsg(await storage.getPrompt(withExternal: externalPrompt), messages);
     logMsg(msg.sublist(1));
     bool notificationSent= false;

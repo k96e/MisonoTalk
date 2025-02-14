@@ -11,7 +11,7 @@ String removeTailSlash(String input) {
 List<List<String>> mergeMessages(List<List<String>> messages) {
   if (messages.isEmpty) return [];
   List<List<String>> result = [];
-  List<String>? current = messages[0];
+  List<String>? current = ["user", "${messages[0][1]}\n"];
   for (int i = 1; i < messages.length; i++) {
     if (messages[i][0] == "system"){
       messages[i][0] = "user";
@@ -25,9 +25,6 @@ List<List<String>> mergeMessages(List<List<String>> messages) {
     }
   }
   result.add(current!);
-  if (result[1][0] == "assistant") {
-    result.removeAt(1);
-  }
   return result;
 }
 
