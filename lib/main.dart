@@ -186,6 +186,7 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
           jsonDecode(utf8.decode(base64.decode(payload['c']!))));
         c = Config.fromJson(configMap);
       } catch (e) {
+        errDialog("无法解析配置：\n${e.toString()}",canRetry: false);
         debugPrint(e.toString());
         return;
       }
@@ -224,6 +225,7 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
     } catch (e) {
       debugPrint(e.toString());
       debugPrint(payload['m']);
+      errDialog("无法解析消息：\n${e.toString()}",canRetry: false);
       return;
     }
     debugPrint(msgs.toString());
@@ -563,7 +565,7 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
         ],
       ),
     ).then((val){
-      if(val==null&&lastMessages!=null){
+      if(canRetry&&val==null&&lastMessages!=null){
         setState(() {
           messages.addAll(lastMessages!);
         });
