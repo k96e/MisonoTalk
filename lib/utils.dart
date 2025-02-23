@@ -161,6 +161,10 @@ String randomizeBackslashes(String resp) {
 }
 
 String formatMsg(String input, {bool clearMiddle = false}) {
+  final reasonReg = RegExp(r'<think>(.{0,5})</think>');
+  reasonReg.allMatches(input).forEach((match) {
+    input = input.replaceRange(match.start, match.end, '');
+  });
   if (clearMiddle) {
     input = input.replaceAll(RegExp(r'\\+'), '\\');
   }
