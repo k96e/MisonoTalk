@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'notifications.dart';
 import 'dart:async' show Timer;
+import 'utils.dart' show Config;
+import 'storage.dart' show StorageService;
 
 void assistantPopup(BuildContext context, String msg, LongPressStartDetails details,
                     String stuName, Function(String) onEdited, String? reasoningContent) {
@@ -267,5 +269,27 @@ void imagePopup(BuildContext context, LongPressStartDetails details, Function(bo
     } else if (value == 2) {
       onEdited(true);
     }
+  });
+}
+
+
+Future<Config?> quickSettingPopup(BuildContext context, RelativeRect position, 
+    StorageService storage) async {
+  List<Config> configs = await storage.getApiConfigs();
+  if (!context.mounted) return null;
+  return await showMenu(
+    context: context,
+    position: position,
+    items: [
+      for (var config in configs) 
+        PopupMenuItem(value: config.name, child: Text(config.name))
+    ],
+  ).then((value) {
+    for (var config in configs){
+      if (value == config.name) {
+        return config;
+      }
+    }
+    return null;
   });
 }

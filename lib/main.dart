@@ -1022,6 +1022,14 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
                     const SizedBox(width: 5),
                     ElevatedButton(
                       onPressed: () => sendMsg(true),
+                      onLongPress: () {
+                        final Size screenSize = MediaQuery.of(context).size;
+                        final RelativeRect pos = RelativeRect.fromLTRB(
+                          screenSize.width, screenSize.height, 0, 0);
+                        quickSettingPopup(context, pos, storage).then((Config? newConf) {
+                          if (newConf != null) updateConfig(newConf);
+                        });
+                      },
                       style: ElevatedButton.styleFrom(
                         padding: const EdgeInsets.all(0),
                         backgroundColor: const Color(0xffff899e),
