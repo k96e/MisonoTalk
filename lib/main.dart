@@ -580,7 +580,10 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
     if(!forceSend){
       if((!realSend)||(realSend&&textController.text.isNotEmpty)){
         setState(() {
-          if(messages.last.type == Message.user){
+          if(messages.isEmpty){
+            userMsg = textController.text;
+            messages.add(Message(message: userMsg, type: Message.user));
+          } else if (messages.last.type == Message.user){
             userMsg = "$userMsg\\${textController.text}";
             messages.last.message = userMsg;
           } else {
