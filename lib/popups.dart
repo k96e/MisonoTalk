@@ -287,6 +287,7 @@ Future<Config?> quickSettingPopup(BuildContext context, RelativeRect position,
   ).then((value) {
     for (var config in configs){
       if (value == config.name) {
+        storage.setCurrentApiConfig(config.name);
         return config;
       }
     }
