@@ -63,7 +63,7 @@ class StorageService {
   Future<List<Config>> getApiConfigs() async {
     List<Config> configs = [];
     String current = _prefs.getString("current_api") ?? "";
-    Set<String> keys = _prefs.getKeys();
+    List<String> keys = _prefs.getKeys().toList();
     if (current.isNotEmpty) {
       if (_prefs.getStringList(current) == null) {
         await _prefs.remove("current_api");
@@ -79,6 +79,7 @@ class StorageService {
         }
       }
     }
+    keys.sort();
     for (String key in keys) {
       if (key.startsWith("api_") && key != current) {
         List<String> currentConfig = _prefs.getStringList(key) ?? ['','','',''];
