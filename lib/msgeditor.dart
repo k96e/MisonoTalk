@@ -14,6 +14,7 @@ class MsgEditorState extends State<MsgEditor> {
   late List<bool> selected;
   late List<Message> msgs;
   int lastSwipe = -1;
+  int hideLength = 0;
 
   @override
   void initState() {
@@ -57,7 +58,9 @@ class MsgEditorState extends State<MsgEditor> {
       body: Column(
         children: <Widget>[
           Center(
-            child: Text('共${msgs.length}条消息, ${widget.promptLength+wordCount()}字')
+            child: hideLength==0? Text('共${msgs.length}条消息, ${widget.promptLength+wordCount()}字')
+              :Text('共${msgs.length}条消息, ${widget.promptLength+wordCount()}字, '
+                'hide后约${widget.promptLength+wordCount()-hideLength+9}字')
           ),
           Padding(
             padding: const EdgeInsets.all(8.0),
@@ -79,6 +82,11 @@ class MsgEditorState extends State<MsgEditor> {
                     setState(() {
                       msgs.removeWhere((element) => selected[msgs.indexOf(element)]);
                       selected.removeWhere((element) => element);
+                      lastSwipe = -1;
+                      hideLength = 0;
+                      for (Message msg in msgs) {
+                        if (msg.isHide) hideLength += msg.message.length;
+                      }
                     });
                   },
                   child: const Text('删除'),
@@ -87,10 +95,12 @@ class MsgEditorState extends State<MsgEditor> {
                 ElevatedButton(
                   onPressed: () {
                     setState(() {
+                      hideLength = 0;
                       for (Message msg in msgs) {
                         if (selected[msgs.indexOf(msg)]){
                           msg.isHide = !msg.isHide;
                         }
+                        if (msg.isHide) hideLength += msg.message.length;
                       }
                       selected.fillRange(0, selected.length, false);
                       lastSwipe = -1;
