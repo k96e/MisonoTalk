@@ -114,7 +114,7 @@ String timestampToSystemMsg(String timestr) {
   return "下面的对话开始于 $result";
 }
 
-List<List<String>> parseMsg(String prompt, List<Message> messages) {
+List<List<String>> parseMsg(String prompt, List<Message> messages, List<String> welcomeMsgs) {
   List<List<String>> msg = [];
   msg.add(["system",prompt]);
   bool hideFlag = false;
@@ -137,6 +137,11 @@ List<List<String>> parseMsg(String prompt, List<Message> messages) {
       var timestr = timestampToSystemMsg(m.message);
       msg.add(["system","下面的对话开始于$timestr"]);
     }
+  }
+  bool multipleAssistantMsgs = msg.where((m) => m[0] == "assistant").length > 1;
+  if (multipleAssistantMsgs && msg.length > 1 && msg[1][0] == "assistant" && 
+      welcomeMsgs.contains(msg[1][1])) {
+    msg.removeAt(1);
   }
   return msg;
 }

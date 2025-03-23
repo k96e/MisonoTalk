@@ -421,7 +421,7 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
                   buildLock = true;
                   controller.text = "Building...";
                   String prompt = "";
-                  List<List<String>> msg = parseMsg(await storage.getPrompt(withExternal: externalPrompt), messages);
+                  List<List<String>> msg = parseMsg(await storage.getPrompt(withExternal: externalPrompt), messages, welcomeMsgs);
                   msg.add(["user", "system instruction:暂停角色扮演，根据上下文，详细描述$studentName给Sensei发送的图片内容或是当前Sensei所看到的场景"]);
                   completion(config, msg, (resp){
                     const String a="我无法继续作为",b="代替玩家言行";
@@ -607,7 +607,7 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
       inputLock = true;
       debugPrint("inputLocked");
     });
-    List<List<String>> msg = parseMsg(await storage.getPrompt(withExternal: externalPrompt), messages);
+    List<List<String>> msg = parseMsg(await storage.getPrompt(withExternal: externalPrompt), messages, welcomeMsgs);
     logMsg(msg.sublist(1));
     bool notificationSent= false;
     try {
@@ -836,7 +836,7 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
                 } else if (value == 'Save') {
                   String prompt = await storage.getPrompt(withExternal: externalPrompt);
                   if(!context.mounted) return;
-                  String? value = await namingHistory(context, "", config, studentName, parseMsg(prompt, messages));
+                  String? value = await namingHistory(context, "", config, studentName, parseMsg(prompt, messages, welcomeMsgs));
                   if (value != null) {
                     debugPrint(value);
                     storage.addHistory(msgListToJson(messages),value);
