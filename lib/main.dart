@@ -930,12 +930,15 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
                     });
                   });
                 }else if (value == 'Records') {
+                  int promptLength = (await storage.getPrompt(withExternal: externalPrompt)).length;
+                  if(!context.mounted) return;
                   Navigator.push(
                     context,
                     MaterialPageRoute(
                       builder: (context) => RecordMsgs(
                         msgs: recordMessages.reversed.toList(),
-                        updateMsg: loadHistory)
+                        updateMsg: loadHistory,
+                        promptLength: promptLength)
                     )
                   );
                 }

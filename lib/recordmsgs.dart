@@ -5,7 +5,8 @@ import 'storage.dart';
 class RecordMsgs extends StatefulWidget {
   final List<String> msgs;
   final Function(String) updateMsg;
-  const RecordMsgs({super.key, required this.msgs, required this.updateMsg});
+  final int promptLength;
+  const RecordMsgs({super.key, required this.msgs, required this.updateMsg, required this.promptLength});
 
   @override
   RecordMsgsState createState() => RecordMsgsState();
@@ -13,9 +14,38 @@ class RecordMsgs extends StatefulWidget {
 
 class RecordMsgsState extends State<RecordMsgs> {
   final storage = StorageService();
+  String desc = "";
+
+  int wordCount(List<Message> msgs){
+    if (msgs.isEmpty) return 0;
+    return msgs.map((msg){
+      switch(msg.type){
+        case Message.user:
+        case Message.assistant:
+        case Message.system:
+          return msg.message.length;
+        case Message.timestamp:
+          return 28;
+        default:
+          return 0;
+      }
+    }).reduce((a,b)=>a+b);
+  }
+
+  Future<void> countText() async {
+    int count = 0;
+    for (var msg in widget.msgs) {
+      List<Message> record = jsonToMsg(msg);
+      count += (wordCount(record)+widget.promptLength);
+    }
+    setState(() {
+      desc = "共${widget.msgs.length}次请求, $count字";
+    });
+  }
 
   @override
   void initState() {
+    countText();
     super.initState();
   }
   
@@ -27,6 +57,10 @@ class RecordMsgsState extends State<RecordMsgs> {
       ),
       body: Column(
         children: <Widget>[
+          Center(
+            child: Text(desc),
+          ),
+          const SizedBox(height: 4),
           Expanded(
             child: ListView.builder(
               itemCount: widget.msgs.length,
