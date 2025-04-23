@@ -1,10 +1,10 @@
 // ignore_for_file: use_build_context_synchronously
-
 import 'package:flutter/material.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/services.dart' show FilteringTextInputFormatter;
 import 'storage.dart';
 import 'prompteditor.dart';
-import 'utils.dart' show snackBarAlert, Config, DecimalTextInputFormatter;
+import 'utils.dart' show snackBarAlert, Config, DecimalTextInputFormatter, removeTailSlash;
 
 class ConfigPage extends StatefulWidget {
   final Function(Config) updateFunc;
@@ -50,6 +50,109 @@ class ConfigPageState extends State<ConfigPage> {
         maxTokensController.text = widget.currentConfig.maxTokens ?? "";
       });
     });
+  }
+
+  Widget selectPopup(BuildContext context, List<List<String>> items) {
+  return SizedBox(
+    height: MediaQuery.of(context).size.height*0.8,
+    width: MediaQuery.of(context).size.width*0.8,
+    child: ListView.builder(
+      itemCount: items.length,
+      itemBuilder: (context, index) {
+        return Card(
+          child: ListTile(
+            title: Text(items[index][0]),
+            subtitle: Text(items[index][1]),
+            onTap: () {
+              setState(() {
+                modelController.text = items[index][0];
+              });
+              Navigator.pop(context);
+            },
+          )
+        );
+      },
+    )
+  );
+  }
+
+  Future<void> selectModelFromAPI(BuildContext context) async {
+    String baseUrl = removeTailSlash(urlController.text);
+    String apiKey = keyController.text;
+    
+    if (baseUrl.isEmpty) {
+      snackBarAlert(context, "no baseurl");
+      return;
+    }
+    
+    late BuildContext dialogContext;
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        dialogContext = context;
+        return AlertDialog(
+          title: const Text('选择模型'),
+          content: const SizedBox(
+            height: 80,
+            child: Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  CircularProgressIndicator(),
+                  SizedBox(height: 16),
+                  Text('Loading...')
+                ],
+              ),
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('取消'),
+            ),
+          ],
+        );
+      },
+    );
+    
+    try {
+      final dio = Dio();
+      dio.options.headers["Accept"] = "application/json";
+      dio.options.headers["Authorization"] = "Bearer $apiKey";
+      dio.options.sendTimeout = const Duration(seconds: 10);
+      dio.options.receiveTimeout = const Duration(seconds: 10);
+      dio.options.connectTimeout = const Duration(seconds: 10);
+      final resp = await dio.get("$baseUrl/models");
+      
+      List<List<String>> models = [];
+      for (var model in resp.data["data"]) {
+        models.add([model["id"], model["owned_by"]]);
+      }
+      Navigator.of(dialogContext).pop();
+      showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: const Text('选择模型'),
+            content: selectPopup(context, models),
+            actions: <Widget>[
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: const Text('取消'),
+              ),
+            ],
+          );
+        },
+      );
+    } catch (e) {
+      Navigator.of(dialogContext).pop();
+      snackBarAlert(context, e.toString());
+    }
   }
 
   Future<void> deleteConfirm(BuildContext context, String config) async {
@@ -169,9 +272,18 @@ class ConfigPageState extends State<ConfigPage> {
               decoration: const InputDecoration(labelText: 'api key'),
             ),
             const SizedBox(height: 10),
-            TextField(
-              controller: modelController,
-              decoration: const InputDecoration(labelText: 'model'),
+            Row(
+              children: [
+                Expanded(child: TextField(
+                  controller: modelController,
+                  decoration: const InputDecoration(labelText: 'model'),
+                )),
+                IconButton(onPressed: (){
+                    selectModelFromAPI(context);
+                  }, 
+                  icon: const Icon(Icons.search)
+                ),
+              ]
             ),
             const SizedBox(height: 10),
             Row(

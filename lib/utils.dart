@@ -165,6 +165,12 @@ String randomizeBackslashes(String resp) {
   return result.toString();
 }
 
+String removeTailSlash(String input) {
+  return input.trimRight().endsWith('/')
+      ? input.trimRight().substring(0, input.trimRight().length - 1)
+      : input.trimRight();
+}
+
 String formatMsg(String input, {bool clearMiddle = false}) {
   final reasonReg = RegExp(r'<think>(.{0,5})</think>');
   reasonReg.allMatches(input).forEach((match) {

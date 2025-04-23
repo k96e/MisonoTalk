@@ -1,12 +1,7 @@
 import 'dart:convert';
 import 'package:eventflux/eventflux.dart';
-import 'utils.dart' show Config;
+import 'utils.dart' show Config, removeTailSlash;
 
-String removeTailSlash(String input) {
-  return input.trimRight().endsWith('/')
-      ? input.trimRight().substring(0, input.trimRight().length - 1)
-      : input.trimRight();
-}
 
 List<List<String>> mergeMessages(List<List<String>> messages) {
   if (messages.isEmpty) return [];
