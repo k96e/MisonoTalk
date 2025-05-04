@@ -44,6 +44,56 @@ class WebdavPageState extends State<WebdavPage> {
     );
   }
 
+  Widget configPopup(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Webdav配置'),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          TextField(
+            controller: urlController,
+            decoration: const InputDecoration(
+              labelText: 'URL',
+            ),
+          ),
+          TextField(
+            controller: usernameController,
+            decoration: const InputDecoration(
+              labelText: 'Username',
+            ),
+          ),
+          TextField(
+            controller: passwordController,
+            decoration: const InputDecoration(
+              labelText: 'Password',
+            ),
+          ),
+        ],
+      ),
+      actions: <Widget>[
+        TextButton(
+          onPressed: () {
+            Navigator.of(context).pop();
+          },
+          child: const Text('取消'),
+        ),
+        TextButton(
+          onPressed: testWebdav,
+          child: const Text('测试'),
+        ),
+        TextButton(
+          onPressed: () async {
+            await storage.setWebdav(urlController.text, usernameController.text, passwordController.text);
+            if(!context.mounted) return;
+            snackBarAlert(context, 'Saved');
+            Navigator.of(context).pop();
+          },
+          child: const Text('保存'),
+        ),
+      ],
+    );
+  }
+
   Future<void> testWebdav() async {
     try {
       var client = newClient(urlController.text, user: usernameController.text, password: passwordController.text);
@@ -223,32 +273,16 @@ class WebdavPageState extends State<WebdavPage> {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: <Widget>[
-            TextField(
-              controller: urlController,
-              decoration: const InputDecoration(
-                labelText: 'URL',
-              ),
-            ),
-            TextField(
-              controller: usernameController,
-              decoration: const InputDecoration(
-                labelText: 'Username',
-              ),
-            ),
-            TextField(
-              controller: passwordController,
-              decoration: const InputDecoration(
-                labelText: 'Password',
-              ),
-            ),
-            const SizedBox(height: 16),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                ElevatedButton(child: const Text('保存'), onPressed: () async {
-                  await storage.setWebdav(urlController.text, usernameController.text, passwordController.text);
-                  if(!context.mounted) return;
-                  snackBarAlert(context, 'Saved');
+                ElevatedButton(child: const Text('配置'), onPressed: () {
+                  showDialog(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return configPopup(context);
+                    }
+                  );
                 }),
                 ElevatedButton(
                   onPressed: testWebdav, 
