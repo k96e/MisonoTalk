@@ -6,6 +6,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:webdav_client/webdav_client.dart';
 import 'storage.dart';
+import 'aesutil.dart' show AesUtil;
 import 'utils.dart' show snackBarAlert,msgsListWidget;
 
 class WebdavPage extends StatefulWidget {
@@ -20,6 +21,7 @@ class WebdavPageState extends State<WebdavPage> {
   TextEditingController urlController = TextEditingController();
   TextEditingController usernameController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
+  TextEditingController encryptController = TextEditingController();
   final storage = StorageService();
   double progress = 0;
   List<List<String>> messageRecords = [];
@@ -68,6 +70,12 @@ class WebdavPageState extends State<WebdavPage> {
               labelText: 'Password',
             ),
           ),
+          TextField(
+            controller: encryptController,
+            decoration: const InputDecoration(
+              labelText: 'Encrypt Key',
+            ),
+          ),
         ],
       ),
       actions: <Widget>[
@@ -84,6 +92,7 @@ class WebdavPageState extends State<WebdavPage> {
         TextButton(
           onPressed: () async {
             await storage.setWebdav(urlController.text, usernameController.text, passwordController.text);
+            await storage.setEncryptKey(encryptController.text);
             if(!context.mounted) return;
             snackBarAlert(context, 'Saved');
             Navigator.of(context).pop();
@@ -108,7 +117,11 @@ class WebdavPageState extends State<WebdavPage> {
   Future<void> backupTemp() async {
     try {
       var client = newClient(urlController.text, user: usernameController.text, password: passwordController.text);
-      Uint8List data = utf8.encode(widget.currentMessages);
+      String payload = widget.currentMessages;
+      if (encryptController.text.isNotEmpty) {
+        payload = "MMTENC:${AesUtil.encrypt(widget.currentMessages, encryptController.text)}";
+      }
+      Uint8List data = utf8.encode(payload);
       await client.write("momotalk/temp.json", data);
       if(!context.mounted) return;
       snackBarAlert(context, "Backup OK");
@@ -123,30 +136,41 @@ class WebdavPageState extends State<WebdavPage> {
       setState(() {
         progress = 0;
       });
-      client.read("momotalk/temp.json",onProgress: (count, total) {
+      List<int> data = await client.read("momotalk/temp.json",onProgress: (count, total) {
         setState(() {
           progress = count / total;
         });
-      },).then((data) {
-        setState(() {
-          progress = 1;
-        });
-        String msg = utf8.decode(data);
-        storage.setTempHistory(msg);
-        widget.onRefresh(msg);
-        if(!context.mounted) return;
-        snackBarAlert(context, "Restore OK");
-        Navigator.of(context).pop();
       });
+      String msg = utf8.decode(data);
+      if(msg.startsWith("MMTENC:")){
+        if(encryptController.text.isEmpty) {
+          errDialog("no encrypt key set");
+          return;
+        }
+        msg = AesUtil.decrypt(msg.replaceFirst("MMTENC:", ""), encryptController.text);
+      }
+      widget.onRefresh(msg);
+      storage.setTempHistory(msg);
+      if(!context.mounted) return;
+      snackBarAlert(context, "Restore OK");
+      Navigator.of(context).pop();
     } catch (e) {
-      errDialog(e.toString());
+      String errMsg = e.toString();
+      if (errMsg.contains("Invalid or corrupted pad block")) {
+        errMsg = "wrong encrypt key";
+      }
+      errDialog(errMsg);
     }
   }
 
   Future<void> backupCurrent({String? fileName}) async {
     try {
       var client = newClient(urlController.text, user: usernameController.text, password: passwordController.text);
-      Uint8List data = utf8.encode(widget.currentMessages);
+      String payload = widget.currentMessages;
+      if (encryptController.text.isNotEmpty) {
+        payload = "MMTENC:${AesUtil.encrypt(widget.currentMessages, encryptController.text)}";
+      }
+      Uint8List data = utf8.encode(payload);
       int timestamp = DateTime.now().millisecondsSinceEpoch;
       setState(() {
         progress = 0;
@@ -172,30 +196,53 @@ class WebdavPageState extends State<WebdavPage> {
   }
 
   Future<String> getContent(String name) async {
-    var client = newClient(urlController.text, user: usernameController.text, password: passwordController.text);
-    setState(() {
-      progress = 0;
-    });
-    List<int> data = await client.read("momotalk/$name", onProgress: (count, total) {
+    try {
+      var client = newClient(urlController.text, user: usernameController.text, password: passwordController.text);
       setState(() {
-        progress = count / total;
+        progress = 0;
       });
-    });
-    return utf8.decode(data);
+      List<int> data = await client.read("momotalk/$name", onProgress: (count, total) {
+        setState(() {
+          progress = count / total;
+        });
+      });
+      String msg = utf8.decode(data);
+      if(msg.startsWith("MMTENC:")){
+        if(encryptController.text.isEmpty) {
+          errDialog("no encrypt key set");
+          return "";
+        }
+        msg = "dec:${AesUtil.decrypt(msg.replaceFirst("MMTENC:", ""), encryptController.text)}";
+      }
+      return msg;
+    } catch (e) {
+      String errMsg = e.toString();
+      if (errMsg.contains("Invalid or corrupted pad block")) {
+        errMsg = "wrong encrypt key";
+      }
+      errDialog(errMsg);
+      return "";
+    }
   }
 
   Future<void> loadItem(int index) async {
     String loadedMessage = "";
+    bool isEncrypted = false;
     if (messageRecords[index].length == 3 && messageRecords[index][2].isNotEmpty) {
       loadedMessage = messageRecords[index][2];
     } else{
       loadedMessage = await getContent(messageRecords[index][1]);
+      if (loadedMessage.isEmpty) return;
       messageRecords[index][2] = loadedMessage;
+    }
+    if (loadedMessage.startsWith("dec:")) {
+      loadedMessage = loadedMessage.replaceFirst("dec:", "");
+      isEncrypted = true;
     }
     showDialog(context: context, builder: 
       (BuildContext context) {
         return AlertDialog(
-          title: Text(messageRecords[index][0]),
+          title: Text(isEncrypted ? "${messageRecords[index][0]} - 🔒":messageRecords[index][0]),
           content: msgsListWidget(context, loadedMessage, isReverse: false),
           actions: <Widget>[
             TextButton(
@@ -260,6 +307,9 @@ class WebdavPageState extends State<WebdavPage> {
           passwordController.text = webdav[2];
         });
       }
+    });
+    storage.getEncryptKey().then((key) {
+      encryptController.text = key;
     });
   }
 

@@ -178,6 +178,14 @@ class StorageService {
     await _prefs.setStringList("webdav", [url,username,password]);
   }
 
+  Future<void> setEncryptKey(String key) async {
+    await _prefs.setString("encrypt_key", key);
+  }
+
+  Future<String> getEncryptKey() async {
+    return _prefs.getString("encrypt_key") ?? "";
+  }
+
   Future<void> setDrawUrl(String url) async {
     await _prefs.setString("draw_url", url);
   }
