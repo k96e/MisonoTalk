@@ -18,10 +18,13 @@
  保存后确定即可
 
 #### 关于备份
- 在设置页点击备份会默认导出备份文件到设备的下载目录，备份中文件除了保存的对话外还有api密钥等敏感信息，请勿轻易分享到公开平台
+ 在设置页点击备份会默认导出备份文件到设备的下载目录，备份中文件除了保存的对话外还有明文api密钥等敏感信息，请勿轻易分享到公开平台
 
 #### 关于AI绘画
  使用[这个HuggingFace Space](https://r3gm-diffusecraft.hf.space/)作为api，你需要Duplicate this Space，获取自己的hf space url
+
+#### 关于加密
+ [Commit a05bb73](https://github.com/k96e/MisonoTalk/commit/a05bb737e8598ecdde6c2c3fd7cdbf6d3ebf55e8) 之后，通过WebDav进行备份或同步时支持端到端加密，如需使用请在所有设备的WebDav配置中设置相同的Encrypt Key. 提供外部解密脚本，位于`scripts/decrypt.py`
 
 ### 叠甲
 - 自用项目能跑就行，代码很烂
