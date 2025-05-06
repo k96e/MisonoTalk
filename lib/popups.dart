@@ -4,6 +4,53 @@ import 'dart:async' show Timer;
 import 'utils.dart' show Config;
 import 'storage.dart' show StorageService;
 
+Future<String> replaceStr(BuildContext context, String target) async {
+  TextEditingController fromStr = TextEditingController(text: '');
+  TextEditingController toStr = TextEditingController(text: '');
+  var res = await showDialog(
+    context: context,
+    builder: (context) {
+      return AlertDialog(
+        title: const Text('替换'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: fromStr,
+              decoration: const InputDecoration(labelText: '查找'),
+            ),
+            TextField(
+              controller: toStr,
+              decoration: const InputDecoration(labelText: '替换'),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            child: const Text('取消'),
+          ),
+          TextButton(
+            onPressed: () {
+              String result = target.replaceAll(fromStr.text, toStr.text);
+              if(fromStr.text=="~") result = target.replaceAll("～", toStr.text);
+              Navigator.of(context).pop(result);
+            },
+            child: const Text('确定'),
+          ),
+        ],
+      );
+    },
+  );
+  if (res is String) {
+    return res;
+  } else {
+    return target;
+  }
+}
+
 void assistantPopup(BuildContext context, String msg, LongPressStartDetails details,
                     String stuName, Function(String) onEdited, String? reasoningContent) {
   final RenderBox overlay = Overlay.of(context).context.findRenderObject() as RenderBox;
@@ -80,6 +127,14 @@ void assistantPopup(BuildContext context, String msg, LongPressStartDetails deta
                 controller.clear();
               },
               child: const Text('清空'),
+            ),
+            TextButton(
+              onPressed: () {
+                replaceStr(context, controller.text).then((value) {
+                  controller.text = value;
+                });
+              },
+              child: const Text('替换'),
             ),
             TextButton(
               onPressed: () {
