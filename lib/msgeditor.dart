@@ -20,6 +20,9 @@ class MsgEditorState extends State<MsgEditor> {
   void initState() {
     msgs = copyMsgs(widget.msgs);
     selected = List.filled(msgs.length, false, growable: true);
+    for (Message msg in msgs) {
+      if (msg.isHide) hideLength += msg.message.length;
+    }
     super.initState();
   }
 
