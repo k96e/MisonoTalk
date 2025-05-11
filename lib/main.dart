@@ -324,6 +324,9 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
           });
           return;
         }
+        if(index==messages.length-1){
+          userMsg = edited;
+        }
         setState(() {
           messages[index].message = edited;
         });
