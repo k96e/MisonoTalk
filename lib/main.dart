@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -700,6 +702,320 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
     }
   }
 
+  void onMenuSelected(String value)  async {
+    if (value == 'Clear') {
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text("Clear"),
+          content: const Text("确认清除当前对话上下文？"),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                clearMsg();
+              },
+              child: const Text('Clear'),
+            ),
+          ],
+        ),
+      );
+    } else if (value == 'Save') {
+      String prompt = await storage.getPrompt(withExternal: externalPrompt);
+      if(!context.mounted) return;
+      String? value = await namingHistory(context, "", config, studentName, parseMsg(prompt, messages, welcomeMsgs));
+      if (value != null) {
+        debugPrint(value);
+        storage.addHistory(msgListToJson(messages),value);
+        if(!context.mounted) return;
+        snackBarAlert(context, "已保存");
+      } else {
+        debugPrint("cancel");
+      }
+    } else if (value == 'Time') {
+      if(messages.last.type != Message.timestamp){
+        setState(() {
+          messages.add(Message(message: DateTime.now().millisecondsSinceEpoch.toString(), type: Message.timestamp));
+        });
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          setScrollPercent(1.0);
+        });
+      }
+    } else if (value == 'System') {
+      systemPopup(context, "", (String edited,bool isSend){
+        setState(() {
+          if(edited.isNotEmpty){
+            messages.add(Message(message: edited, type: Message.system));
+            if(isSend){
+              sendMsg(true,forceSend: true);
+            }
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              setScrollPercent(1.0);
+            });
+          }
+        });
+      });
+    } else if (value == 'Settings') {
+      Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (context) => 
+                ConfigPage(updateFunc: updateConfig, currentConfig: config)));
+    } else if (value == 'Backup'){
+      Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (context) => WebdavPage(
+                currentMessages: msgListToJson(messages),
+                onRefresh: loadHistory)));
+    }else if (value == 'History') {
+      showModalBottomSheet(
+          context: context,
+          showDragHandle: true,
+          scrollControlDisabledMaxHeightRatio: 0.9,
+          builder: (BuildContext context) => HistoryPage(updateFunc: loadHistory));
+    }else if (value == 'ExtPrompt') {
+      setState(() {
+        externalPrompt = !externalPrompt;
+      });
+      snackBarAlert(context, "ExtPrompt ${externalPrompt?"on":"off"}");
+    }else if (value == 'Msgs') {
+      int promptLength = (await storage.getPrompt(withExternal: externalPrompt)).length;
+      if(!context.mounted) return;
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => MsgEditor(msgs: messages, 
+          promptLength: promptLength,)
+        )
+      ).then((msgs){
+        if(msgs!=null){
+          setState(() {
+            messages.clear();
+            messages.addAll(msgs);
+          });
+        }
+      });
+    }else if (value == 'Draw') {
+      sdWorkflow();
+    }else if (value == 'Exit') {
+      if (Platform.isWindows) {
+        windowManager.close();
+      }
+    }else if (value == 'OnTop') {
+      if (Platform.isWindows) {
+        setState(() {
+          isOnTop = !isOnTop;
+        });
+        windowManager.setAlwaysOnTop(isOnTop);
+      }
+    }else if (value == 'Stop') {
+      EventFlux.instance.disconnect().then((val){
+        debugPrint(val.toString());
+        setState(() {
+          inputLock = false;
+        });
+      });
+    }else if (value == 'Records') {
+      int promptLength = (await storage.getPrompt(withExternal: externalPrompt)).length;
+      if(!context.mounted) return;
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => RecordMsgs(
+            msgs: recordMessages.reversed.toList(),
+            updateMsg: loadHistory,
+            promptLength: promptLength)
+        )
+      );
+    }
+  }
+
+  Widget popupMenu() {
+    return PopupMenuButton<String>(
+      icon: const Icon(
+        Icons.close,
+        color: Colors.white,
+        size: 40,
+      ),
+      itemBuilder: (context) => [
+        const PopupMenuItem(
+          value: 'Clear',
+          child: Text('Clear'),
+        ),
+        const PopupMenuItem(
+          value: 'Save',
+          child: Text('Save'),
+        ),
+        const PopupMenuItem(
+          value: 'Time',
+          child: Text('Time'),
+        ),
+        const PopupMenuItem(
+          value: 'System',
+          child: Text('System'),
+        ),
+        PopupMenuItem(
+          value: 'ExtPrompt',
+          child: Text('ExtPrompt ${externalPrompt?"√":"×"}'),
+        ),
+        const PopupMenuItem(
+          value: 'Backup',
+          child: Text('Backup...'),
+        ),
+        const PopupMenuItem(
+          value: 'Draw',
+          child: Text('AiDraw...'),
+        ),
+        const PopupMenuItem(
+          value: 'History',
+          child: Text('History...'),
+        ),
+        const PopupMenuItem(
+          value: 'Records',
+          child: Text('Records...'),
+        ),
+        const PopupMenuItem(
+          value: 'Msgs',
+          child: Text('Msgs...'),
+        ),
+        const PopupMenuItem(
+          value: 'Settings',
+          child: Text('Settings...'),
+        ),
+        if (inputLock)
+          const PopupMenuItem(
+            value: 'Stop',
+            child: Text('Stop'),
+          ),
+        if (Platform.isWindows)
+          PopupMenuItem(
+            value: 'OnTop',
+            child: Text('OnTop ${isOnTop?"√":"×"}'),
+          ),
+        if (Platform.isWindows)
+          const PopupMenuItem(
+            value: 'Exit',
+            child: Text('Exit'),
+          ),
+      ],
+      onSelected: (String value) {onMenuSelected(value);},
+    );
+  }
+
+  Widget mainChatView() {
+    return GestureDetector(
+      onTap: () {fn.unfocus();},
+      child: Column(
+        children: [
+          Expanded(
+              child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 7),
+                  child: SingleChildScrollView(
+                      controller: scrollController,
+                      child: ListView.builder(
+                        itemCount: messages.length,
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemBuilder: (context, index) {
+                          final message = messages[index];
+                          if (index == 0) {
+                            return Column(
+                              children: [
+                                const SizedBox(height: 10),
+                                GestureDetector(
+                                  onLongPressStart: (LongPressStartDetails details) {
+                                    if(message.isHide) return;
+                                    onMsgPressed(index, details);
+                                  },
+                                  child: Opacity(opacity: message.isHide?0.3:1.0,
+                                    child: ChatElement(
+                                      message: message.message,
+                                      type: message.type,
+                                      stuName: studentName,
+                                    )
+                                  )
+                                )
+                              ],
+                            );
+                          }
+                          return GestureDetector(
+                            onLongPressStart: (LongPressStartDetails details) {
+                              if(message.isHide) return;
+                              onMsgPressed(index, details);
+                              fn.unfocus();
+                            },
+                            child: Opacity(opacity: message.isHide?0.3:1.0,
+                              child: ChatElement(
+                              message: message.message, 
+                              type: message.type,
+                              stuName: studentName
+                              )
+                            )
+                          );
+                        },
+                      )))),
+          Padding(
+            padding: const EdgeInsets.only(left: 12, right: 12, bottom: 12),
+            child: Row(
+              children: [
+                Expanded(
+                    child: TextField(
+                        focusNode: fn,
+                        controller: textController,
+                        // enabled: !inputLock,
+                        onEditingComplete: (){
+                          if(textController.text.isEmpty && userMsg.isNotEmpty){
+                            sendMsg(true);
+                          } else if(textController.text.isNotEmpty){
+                            sendMsg(false);
+                          }
+                        },
+                        decoration: InputDecoration(
+                          border: const OutlineInputBorder(),
+                          fillColor: const Color(0xffff899e),
+                          isCollapsed: true,
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 8,
+                          ),
+                          hintText: inputLock ? 'Responding' : 'Type a message',
+                        ))),
+                const SizedBox(width: 5),
+                ElevatedButton(
+                  onPressed: () => sendMsg(true),
+                  onLongPress: () {
+                    final Size screenSize = MediaQuery.of(context).size;
+                    final RelativeRect pos = RelativeRect.fromLTRB(
+                      screenSize.width, screenSize.height, 0, 0);
+                    quickSettingPopup(context, pos, storage).then((Config? newConf) {
+                      if (newConf != null) updateConfig(newConf);
+                    });
+                  },
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.all(0),
+                    backgroundColor: const Color(0xffff899e),
+                    foregroundColor: const Color(0xffffffff),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(5),
+                    ),
+                  ),
+                  child: const Text('Send'),
+                )
+              ],
+            ),
+          )
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return PopScope(
@@ -744,317 +1060,9 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
               ),
             )
           ),
-          actions: <Widget>[
-            PopupMenuButton<String>(
-              icon: const Icon(
-                Icons.close,
-                color: Colors.white,
-                size: 40,
-              ),
-              itemBuilder: (context) => [
-                const PopupMenuItem(
-                  value: 'Clear',
-                  child: Text('Clear'),
-                ),
-                const PopupMenuItem(
-                  value: 'Save',
-                  child: Text('Save'),
-                ),
-                const PopupMenuItem(
-                  value: 'Time',
-                  child: Text('Time'),
-                ),
-                const PopupMenuItem(
-                  value: 'System',
-                  child: Text('System'),
-                ),
-                PopupMenuItem(
-                  value: 'ExtPrompt',
-                  child: Text('ExtPrompt ${externalPrompt?"√":"×"}'),
-                ),
-                const PopupMenuItem(
-                  value: 'Backup',
-                  child: Text('Backup...'),
-                ),
-                const PopupMenuItem(
-                  value: 'Draw',
-                  child: Text('AiDraw...'),
-                ),
-                const PopupMenuItem(
-                  value: 'History',
-                  child: Text('History...'),
-                ),
-                const PopupMenuItem(
-                  value: 'Records',
-                  child: Text('Records...'),
-                ),
-                const PopupMenuItem(
-                  value: 'Msgs',
-                  child: Text('Msgs...'),
-                ),
-                const PopupMenuItem(
-                  value: 'Settings',
-                  child: Text('Settings...'),
-                ),
-                if (inputLock)
-                  const PopupMenuItem(
-                    value: 'Stop',
-                    child: Text('Stop'),
-                  ),
-                if (Platform.isWindows)
-                  PopupMenuItem(
-                    value: 'OnTop',
-                    child: Text('OnTop ${isOnTop?"√":"×"}'),
-                  ),
-                if (Platform.isWindows)
-                  const PopupMenuItem(
-                    value: 'Exit',
-                    child: Text('Exit'),
-                  ),
-              ],
-              onSelected: (String value) async {
-                if (value == 'Clear') {
-                  showDialog(
-                    context: context,
-                    builder: (context) => AlertDialog(
-                      title: const Text("Clear"),
-                      content: const Text("确认清除当前对话上下文？"),
-                      actions: [
-                        TextButton(
-                          onPressed: () {
-                            Navigator.of(context).pop();
-                          },
-                          child: const Text('Cancel'),
-                        ),
-                        TextButton(
-                          onPressed: () {
-                            Navigator.of(context).pop();
-                            clearMsg();
-                          },
-                          child: const Text('Clear'),
-                        ),
-                      ],
-                    ),
-                  );
-                } else if (value == 'Save') {
-                  String prompt = await storage.getPrompt(withExternal: externalPrompt);
-                  if(!context.mounted) return;
-                  String? value = await namingHistory(context, "", config, studentName, parseMsg(prompt, messages, welcomeMsgs));
-                  if (value != null) {
-                    debugPrint(value);
-                    storage.addHistory(msgListToJson(messages),value);
-                    if(!context.mounted) return;
-                    snackBarAlert(context, "已保存");
-                  } else {
-                    debugPrint("cancel");
-                  }
-                } else if (value == 'Time') {
-                  if(messages.last.type != Message.timestamp){
-                    setState(() {
-                      messages.add(Message(message: DateTime.now().millisecondsSinceEpoch.toString(), type: Message.timestamp));
-                    });
-                    WidgetsBinding.instance.addPostFrameCallback((_) {
-                      setScrollPercent(1.0);
-                    });
-                  }
-                } else if (value == 'System') {
-                  systemPopup(context, "", (String edited,bool isSend){
-                    setState(() {
-                      if(edited.isNotEmpty){
-                        messages.add(Message(message: edited, type: Message.system));
-                        if(isSend){
-                          sendMsg(true,forceSend: true);
-                        }
-                        WidgetsBinding.instance.addPostFrameCallback((_) {
-                          setScrollPercent(1.0);
-                        });
-                      }
-                    });
-                  });
-                } else if (value == 'Settings') {
-                  Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => 
-                            ConfigPage(updateFunc: updateConfig, currentConfig: config)));
-                } else if (value == 'Backup'){
-                  Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => WebdavPage(
-                            currentMessages: msgListToJson(messages),
-                            onRefresh: loadHistory)));
-                }else if (value == 'History') {
-                  showModalBottomSheet(
-                      context: context,
-                      showDragHandle: true,
-                      scrollControlDisabledMaxHeightRatio: 0.9,
-                      builder: (BuildContext context) => HistoryPage(updateFunc: loadHistory));
-                }else if (value == 'ExtPrompt') {
-                  setState(() {
-                    externalPrompt = !externalPrompt;
-                  });
-                  snackBarAlert(context, "ExtPrompt ${externalPrompt?"on":"off"}");
-                }else if (value == 'Msgs') {
-                  int promptLength = (await storage.getPrompt(withExternal: externalPrompt)).length;
-                  if(!context.mounted) return;
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => MsgEditor(msgs: messages, 
-                      promptLength: promptLength,)
-                    )
-                  ).then((msgs){
-                    if(msgs!=null){
-                      setState(() {
-                        messages.clear();
-                        messages.addAll(msgs);
-                      });
-                    }
-                  });
-                }else if (value == 'Draw') {
-                  sdWorkflow();
-                }else if (value == 'Exit') {
-                  if (Platform.isWindows) {
-                    windowManager.close();
-                  }
-                }else if (value == 'OnTop') {
-                  if (Platform.isWindows) {
-                    setState(() {
-                      isOnTop = !isOnTop;
-                    });
-                    windowManager.setAlwaysOnTop(isOnTop);
-                  }
-                }else if (value == 'Stop') {
-                  EventFlux.instance.disconnect().then((val){
-                    debugPrint(val.toString());
-                    setState(() {
-                      inputLock = false;
-                    });
-                  });
-                }else if (value == 'Records') {
-                  int promptLength = (await storage.getPrompt(withExternal: externalPrompt)).length;
-                  if(!context.mounted) return;
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => RecordMsgs(
-                        msgs: recordMessages.reversed.toList(),
-                        updateMsg: loadHistory,
-                        promptLength: promptLength)
-                    )
-                  );
-                }
-              },
-            ),
-          ],
+          actions: [popupMenu()],
         ),
-        body: GestureDetector(
-          onTap: () {
-            fn.unfocus();
-          },
-          child: Column(
-            children: [
-              Expanded(
-                  child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 7),
-                      child: SingleChildScrollView(
-                          controller: scrollController,
-                          child: ListView.builder(
-                            itemCount: messages.length,
-                            shrinkWrap: true,
-                            physics: const NeverScrollableScrollPhysics(),
-                            itemBuilder: (context, index) {
-                              final message = messages[index];
-                              if (index == 0) {
-                                return Column(
-                                  children: [
-                                    const SizedBox(height: 10),
-                                    GestureDetector(
-                                      onLongPressStart: (LongPressStartDetails details) {
-                                        if(message.isHide) return;
-                                        onMsgPressed(index, details);
-                                      },
-                                      child: Opacity(opacity: message.isHide?0.3:1.0,
-                                        child: ChatElement(
-                                          message: message.message,
-                                          type: message.type,
-                                          stuName: studentName,
-                                        )
-                                      )
-                                    )
-                                  ],
-                                );
-                              }
-                              return GestureDetector(
-                                onLongPressStart: (LongPressStartDetails details) {
-                                  if(message.isHide) return;
-                                  onMsgPressed(index, details);
-                                  fn.unfocus();
-                                },
-                                child: Opacity(opacity: message.isHide?0.3:1.0,
-                                  child: ChatElement(
-                                  message: message.message, 
-                                  type: message.type,
-                                  stuName: studentName
-                                  )
-                                )
-                              );
-                            },
-                          )))),
-              Padding(
-                padding: const EdgeInsets.only(left: 12, right: 12, bottom: 12),
-                child: Row(
-                  children: [
-                    Expanded(
-                        child: TextField(
-                            focusNode: fn,
-                            controller: textController,
-                            // enabled: !inputLock,
-                            onEditingComplete: (){
-                              if(textController.text.isEmpty && userMsg.isNotEmpty){
-                                sendMsg(true);
-                              } else if(textController.text.isNotEmpty){
-                                sendMsg(false);
-                              }
-                            },
-                            decoration: InputDecoration(
-                              border: const OutlineInputBorder(),
-                              fillColor: const Color(0xffff899e),
-                              isCollapsed: true,
-                              contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 10,
-                                vertical: 8,
-                              ),
-                              hintText: inputLock ? 'Responding' : 'Type a message',
-                            ))),
-                    const SizedBox(width: 5),
-                    ElevatedButton(
-                      onPressed: () => sendMsg(true),
-                      onLongPress: () {
-                        final Size screenSize = MediaQuery.of(context).size;
-                        final RelativeRect pos = RelativeRect.fromLTRB(
-                          screenSize.width, screenSize.height, 0, 0);
-                        quickSettingPopup(context, pos, storage).then((Config? newConf) {
-                          if (newConf != null) updateConfig(newConf);
-                        });
-                      },
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.all(0),
-                        backgroundColor: const Color(0xffff899e),
-                        foregroundColor: const Color(0xffffffff),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(5),
-                        ),
-                      ),
-                      child: const Text('Send'),
-                    )
-                  ],
-                ),
-              )
-            ],
-          ),
-        )
+        body: mainChatView(),
       )
     );
   }
