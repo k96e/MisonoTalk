@@ -1055,7 +1055,9 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
             child: Container(
               decoration: const BoxDecoration(
                 gradient: LinearGradient(
-                  colors: <Color>[Color(0xffff899e), Color(0xfff79bac)],
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: <Color>[Color.fromARGB(255, 254, 136, 157), Color.fromARGB(255, 247, 154, 171)],
                 ),
               ),
             )
