@@ -2,6 +2,8 @@
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/services.dart' show FilteringTextInputFormatter;
+import 'package:qr_flutter/qr_flutter.dart';
+import 'dart:convert';
 import 'storage.dart';
 import 'prompteditor.dart';
 import 'utils.dart' show snackBarAlert, Config, DecimalTextInputFormatter, removeTailSlash;
@@ -49,6 +51,27 @@ class ConfigPageState extends State<ConfigPage> {
         presencePenaltyController.text = widget.currentConfig.presencePenalty ?? "";
         maxTokensController.text = widget.currentConfig.maxTokens ?? "";
       });
+    });
+  }
+
+  void qrShare(){
+    Map<String, String> message = {
+      'name': nameController.text,
+      'baseUrl': urlController.text,
+      'apiKey': keyController.text,
+      'model': modelController.text,
+    };
+    String jsonString = jsonEncode(message);
+    String encoded = base64.encode(utf8.encode(jsonString));
+    showDialog(context: context, builder: (context) {
+      return AlertDialog(
+        content: SizedBox(
+          width: 500,
+          child: QrImageView(
+            data: "misonotalk://?c=$encoded",
+          ),
+        )
+      );
     });
   }
 
@@ -214,47 +237,54 @@ class ConfigPageState extends State<ConfigPage> {
         child: 
         SingleChildScrollView(child: Column(
           children: [
-            DropdownButton<String>(
-              value: selectedConfig,
-              hint: const Text('选择配置'),
-              //isExpanded: true,
-              items: apiConfigs.map((Config config) {
-                return DropdownMenuItem<String>(
-                  value: config.name,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(config.name),
-                      IconButton(
-                        icon: const Icon(Icons.delete),
-                        onPressed: () {
-                          deleteConfirm(context, config.name);
-                        },
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                DropdownButton<String>(
+                  value: selectedConfig,
+                  hint: const Text('选择配置'),
+                  //isExpanded: true,
+                  items: apiConfigs.map((Config config) {
+                    return DropdownMenuItem<String>(
+                      value: config.name,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(config.name),
+                          IconButton(
+                            icon: const Icon(Icons.delete),
+                            onPressed: () {
+                              deleteConfirm(context, config.name);
+                            },
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
-                );
-              }).toList(),
-              onChanged: (String? newValue) {
-                setState(() {
-                  selectedConfig = newValue;
-                  for (Config c in apiConfigs) {
-                    if (c.name == newValue) {
-                      nameController.text = c.name;
-                      urlController.text = c.baseUrl;
-                      keyController.text = c.apiKey;
-                      modelController.text = c.model;
-                      temperatureController.text = c.temperature ?? "";
-                      frequencyPenaltyController.text = c.frequencyPenalty ?? "";
-                      presencePenaltyController.text = c.presencePenalty ?? "";
-                      maxTokensController.text = c.maxTokens ?? "";
-                      widget.updateFunc(c);
-                      break;
-                    }
-                  }
-                });
-                storage.setCurrentApiConfig(selectedConfig!);
-              },
+                    );
+                  }).toList(),
+                  onChanged: (String? newValue) {
+                    setState(() {
+                      selectedConfig = newValue;
+                      for (Config c in apiConfigs) {
+                        if (c.name == newValue) {
+                          nameController.text = c.name;
+                          urlController.text = c.baseUrl;
+                          keyController.text = c.apiKey;
+                          modelController.text = c.model;
+                          temperatureController.text = c.temperature ?? "";
+                          frequencyPenaltyController.text = c.frequencyPenalty ?? "";
+                          presencePenaltyController.text = c.presencePenalty ?? "";
+                          maxTokensController.text = c.maxTokens ?? "";
+                          widget.updateFunc(c);
+                          break;
+                        }
+                      }
+                    });
+                    storage.setCurrentApiConfig(selectedConfig!);
+                  },
+                ),
+                const SizedBox(width: 10),
+                IconButton(onPressed: qrShare, icon: const Icon(Icons.qr_code)),
+              ]
             ),
             const SizedBox(height: 20),
             TextField(
