@@ -23,6 +23,7 @@ import 'webdav.dart';
 import 'msgeditor.dart';
 import 'aidraw.dart';
 import 'recordmsgs.dart';
+import 'leftpanel.dart';
 
 
 main() async {
@@ -1064,7 +1065,25 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
           ),
           actions: [popupMenu()],
         ),
-        body: mainChatView(),
+        body: LayoutBuilder(
+          builder: (context, constraints) {
+            if (constraints.maxWidth / constraints.maxHeight > 1.5) {
+              return Row(
+                children: [
+                  Expanded(
+                    child: LeftPanelWidget(),
+                  ),
+                  const VerticalDivider(width: 1, color: Colors.grey),
+                  Expanded(
+                    child: mainChatView(),
+                  )
+                ],
+              );
+            } else {
+              return mainChatView();
+            }
+          },
+        )
       )
     );
   }
