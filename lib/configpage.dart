@@ -68,6 +68,7 @@ class ConfigPageState extends State<ConfigPage> {
         content: SizedBox(
           width: 500,
           child: QrImageView(
+            backgroundColor: Colors.white,
             data: "misonotalk://?c=$encoded",
           ),
         )
