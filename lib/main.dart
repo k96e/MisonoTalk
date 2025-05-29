@@ -1067,14 +1067,22 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
         ),
         body: LayoutBuilder(
           builder: (context, constraints) {
-            if (constraints.maxWidth / constraints.maxHeight > 1.5) {
+            //debugPrint((constraints.maxWidth/ constraints.maxHeight).toString());
+            if (constraints.maxWidth / constraints.maxHeight > 1.2) {
               return Row(
                 children: [
                   Expanded(
-                    child: LeftPanelWidget(),
+                    flex: 3,
+                    child: LeftPanelWidget(
+                      msgStr: messages.lastWhere(
+                        (m)=>m.type==Message.assistant&&m.message.contains('\\'), 
+                        orElse: () => Message(message: "", type: Message.assistant)
+                      ).message.split('\\').firstOrNull,
+                    ),
                   ),
                   const VerticalDivider(width: 1, color: Colors.grey),
                   Expanded(
+                    flex: 4,
                     child: mainChatView(),
                   )
                 ],
