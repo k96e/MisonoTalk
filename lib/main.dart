@@ -1067,8 +1067,8 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
         ),
         body: LayoutBuilder(
           builder: (context, constraints) {
-            //debugPrint((constraints.maxWidth/ constraints.maxHeight).toString());
-            if (constraints.maxWidth / constraints.maxHeight > 1.2) {
+            //debugPrint("constraints: ${constraints.maxWidth}, ${constraints.maxHeight}");
+            if (constraints.maxWidth / constraints.maxHeight > 1.2 && constraints.maxWidth > 795) {
               return Row(
                 children: [
                   Expanded(

@@ -257,21 +257,15 @@ class Bawidgets {
 
   Widget buildButton2({required double cornerRadius, double? skew}) {
      final currentSkew = skew ?? _defaultSkew;
-     final EdgeInsets iconButtonPadding = const EdgeInsets.symmetric(horizontal: _horizontalPaddingBase, vertical: 8.0).copyWith(
-        left: _horizontalPaddingBase + math.max(0, currentSkew) * 0.5 - math.min(0, currentSkew) * 0.5,
-        right: _horizontalPaddingBase - math.max(0, currentSkew) * 0.5 + math.min(0, currentSkew) * 0.5,
-      );
 
     return _buildSkewedMaterialButton(
       skew: currentSkew,
       cornerRadius: cornerRadius,
-      padding: iconButtonPadding,
       onPressed: (){},
       child: const Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(Icons.menu, color: _iconAndTriangleColor, size: 22),
-          SizedBox(width: 6),
           Icon(Icons.arrow_downward, color: _iconAndTriangleColor, size: 20),
         ],
       ),
