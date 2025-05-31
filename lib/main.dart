@@ -8,6 +8,7 @@ import 'package:url_launcher/url_launcher_string.dart' show launchUrlString;
 import 'package:window_manager/window_manager.dart';
 import 'package:eventflux/eventflux.dart';
 import 'package:app_links/app_links.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'dart:io' show Platform;
 import 'dart:convert' show base64, jsonDecode, utf8;
 import 'chatview.dart';
@@ -1043,11 +1044,12 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
           toolbarHeight: 50,
           title: DragToMoveArea(
             child: GestureDetector (
-              child: const SizedBox(
-                height: 22,
-                child: Image(
-                  image: AssetImage("assets/momotalk.webp"),
-                  fit: BoxFit.scaleDown)
+              child: SizedBox(
+                child: SvgPicture.asset(
+                  'assets/momotalk.svg',
+                  colorFilter: const ColorFilter.mode(Colors.white, BlendMode.srcIn),
+                  height: 22,
+                ),
               ),
               onDoubleTap: () => setScrollPercent(0),
             )
