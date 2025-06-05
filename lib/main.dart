@@ -839,6 +839,21 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
     }
   }
 
+  String getLeftPanelMsg() {
+    if(messages.isEmpty) return "";
+    if(inputLock && messages.last.type == Message.assistant && messages.last.message.contains("\\")){
+      List<String> msgParts = messages.last.message.replaceAll("\\\\", "\\").split("\\");
+      return msgParts[msgParts.length-2].trim();
+    } else {
+      for(Message m in messages.reversed){
+        if(m.type == Message.assistant && m.message.contains("\\")){
+          return m.message.split("\\").lastOrNull?.trim() ?? "";
+        }
+      }
+    }
+    return "";
+  }
+
   Widget popupMenu() {
     return PopupMenuButton<String>(
       icon: const Icon(
@@ -1076,10 +1091,7 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
                   Expanded(
                     flex: 3,
                     child: LeftPanelWidget(
-                      msgStr: messages.lastWhere(
-                        (m)=>m.type==Message.assistant&&m.message.contains('\\'), 
-                        orElse: () => Message(message: "", type: Message.assistant)
-                      ).message.split('\\').firstOrNull,
+                      msgStr: getLeftPanelMsg()
                     ),
                   ),
                   const VerticalDivider(width: 1, color: Colors.grey),
