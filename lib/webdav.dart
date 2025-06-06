@@ -389,7 +389,11 @@ class WebdavPageState extends State<WebdavPage> {
                   itemBuilder: (BuildContext context, int index) {
                     return Card(
                       child: ListTile(
-                        title: Text(messageRecords[index].time),
+                        title: Row(children:[
+                          Expanded(child: Text(messageRecords[index].time)),
+                          Text("${(messageRecords[index].size/1024).toStringAsFixed(2)}KB", 
+                            style: const TextStyle(color: Colors.grey)),
+                        ]),
                         onTap: () => loadItem(index),
                         onLongPress: () {
                           showDialog(
