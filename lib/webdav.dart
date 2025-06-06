@@ -17,6 +17,14 @@ class WebdavPage extends StatefulWidget {
   WebdavPageState createState() => WebdavPageState();
 }
 
+class MsgRecord{
+  String time;
+  String name;
+  int size;
+  String? content;
+  MsgRecord(this.time, this.name, this.size, this.content);
+}
+
 class WebdavPageState extends State<WebdavPage> {
   TextEditingController urlController = TextEditingController();
   TextEditingController usernameController = TextEditingController();
@@ -24,7 +32,7 @@ class WebdavPageState extends State<WebdavPage> {
   TextEditingController encryptController = TextEditingController();
   final storage = StorageService();
   double progress = 0;
-  List<List<String>> messageRecords = [];
+  List<MsgRecord> messageRecords = [];
 
   void errDialog(String message) {
     showDialog(
@@ -182,8 +190,8 @@ class WebdavPageState extends State<WebdavPage> {
       },);
       if(fileName != null){
         for (int i = 0; i < messageRecords.length; i++) {
-          if (messageRecords[i][1] == fileName) {
-            messageRecords[i][2] = widget.currentMessages;
+          if (messageRecords[i].name == fileName) {
+            messageRecords[i].content = widget.currentMessages;
             break;
           }
         }
@@ -228,12 +236,12 @@ class WebdavPageState extends State<WebdavPage> {
   Future<void> loadItem(int index) async {
     String loadedMessage = "";
     bool isEncrypted = false;
-    if (messageRecords[index].length == 3 && messageRecords[index][2].isNotEmpty) {
-      loadedMessage = messageRecords[index][2];
+    if (messageRecords[index].content!= null && messageRecords[index].content!.isNotEmpty) {
+      loadedMessage = messageRecords[index].content!;
     } else{
-      loadedMessage = await getContent(messageRecords[index][1]);
+      loadedMessage = await getContent(messageRecords[index].name);
       if (loadedMessage.isEmpty) return;
-      messageRecords[index][2] = loadedMessage;
+      messageRecords[index].content = loadedMessage;
     }
     if (loadedMessage.startsWith("dec:")) {
       loadedMessage = loadedMessage.replaceFirst("dec:", "");
@@ -242,7 +250,7 @@ class WebdavPageState extends State<WebdavPage> {
     showDialog(context: context, builder: 
       (BuildContext context) {
         return AlertDialog(
-          title: Text(isEncrypted ? "${messageRecords[index][0]} - 🔒":messageRecords[index][0]),
+          title: Text(isEncrypted ? "${messageRecords[index].time} - 🔒":messageRecords[index].time),
           content: msgsListWidget(context, loadedMessage, isReverse: false),
           actions: <Widget>[
             TextButton(
@@ -271,10 +279,11 @@ class WebdavPageState extends State<WebdavPage> {
       });
       var client = newClient(urlController.text, user: usernameController.text, password: passwordController.text);
       client.readDir("momotalk").then((list) {
-        List<List<String>> records = [];
+        List<MsgRecord> records = [];
         for (var item in list) {
           if (item.name?.endsWith(".json") ?? false) {
             if (int.tryParse(item.name!.replaceAll(".json", ''))!=null) {
+              debugPrint(item.size.toString());
               int timestamp = int.parse(item.name!.replaceAll(".json", ''));
                 DateTime t = DateTime.fromMillisecondsSinceEpoch(timestamp);
                 const weekday = ["", "一", "二", "三", "四", "五", "六", "日"];
@@ -282,11 +291,11 @@ class WebdavPageState extends State<WebdavPage> {
                   "${t.year}年${t.month}月${t.day}日 星期${weekday[t.weekday]} "
                   "${t.hour.toString().padLeft(2,'0')}:${t.minute.toString().padLeft(2,'0')}"
                   ":${t.second.toString().padLeft(2,'0')}";
-                records.add([result,item.name!,""]);
+                records.add(MsgRecord(result, item.name!, item.size??0, ""));
             }
           }
         }
-        records.sort((a, b) => b[1].compareTo(a[1]));
+        records.sort((a, b) => b.name.compareTo(a.name));
         setState(() {
           messageRecords = records;
         });
@@ -380,7 +389,7 @@ class WebdavPageState extends State<WebdavPage> {
                   itemBuilder: (BuildContext context, int index) {
                     return Card(
                       child: ListTile(
-                        title: Text(messageRecords[index][0]),
+                        title: Text(messageRecords[index].time),
                         onTap: () => loadItem(index),
                         onLongPress: () {
                           showDialog(
@@ -398,7 +407,7 @@ class WebdavPageState extends State<WebdavPage> {
                                   ),
                                   TextButton(
                                     onPressed: () {
-                                      backupCurrent(fileName: messageRecords[index][1]);
+                                      backupCurrent(fileName: messageRecords[index].name);
                                       Navigator.of(context).pop();
                                     },
                                     child: const Text('确定'),
