@@ -101,7 +101,8 @@ class ChatBubbleLayoutLeft extends StatelessWidget {
               const SizedBox(height: 4),
               ...messages.asMap().entries.map((entry) {
                 int idx = entry.key;
-                String message = entry.value;
+                String message = entry.value.trim();
+                bool isStar = message.startsWith("*")||message.startsWith("（")||message.startsWith("(");
                 if (message.isEmpty) {
                   return const SizedBox.shrink();
                 }
@@ -109,14 +110,16 @@ class ChatBubbleLayoutLeft extends StatelessWidget {
                   padding: const EdgeInsets.only(bottom: 4),
                   child: CustomPaint(
                     painter:
-                        BubblePainter(isFirstBubble: idx == 0, isLeft: true),
+                        BubblePainter(isFirstBubble: idx == 0, isLeft: true, 
+                          bubbleColor: isStar?const Color(0xffdce5ec):const Color(0xff4c5b70)),
                     child: Container(
                       padding: const EdgeInsets.symmetric(
                           horizontal: 8, vertical: 4),
                       child: Text(
                         message,
-                        style:
-                            const TextStyle(fontSize: 18, color: Colors.white),
+                        style: isStar 
+                          ? const TextStyle(fontSize: 14, color: Color(0xff4c5b70))
+                          : const TextStyle(fontSize: 18, color: Colors.white),
                       ),
                     ),
                   ),
@@ -231,7 +234,7 @@ class ChatBubbleLayoutRight extends StatelessWidget {
             return Padding(
               padding: const EdgeInsets.only(bottom: 4),
               child: CustomPaint(
-                painter: BubblePainter(isFirstBubble: idx == 0, isLeft: false),
+                painter: BubblePainter(isFirstBubble: idx == 0, isLeft: false, bubbleColor: const Color(0xff4a8aca)),
                 child: Container(
                   padding:
                       const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -254,13 +257,14 @@ class ChatBubbleLayoutRight extends StatelessWidget {
 class BubblePainter extends CustomPainter {
   final bool isFirstBubble;
   final bool isLeft;
+  final Color bubbleColor;
 
-  BubblePainter({required this.isFirstBubble, required this.isLeft});
+  BubblePainter({required this.isFirstBubble, required this.isLeft, required this.bubbleColor});
 
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = isLeft ? const Color(0xff4c5b70) : const Color(0xff4a8aca)
+      ..color = bubbleColor
       ..style = PaintingStyle.fill;
 
     final path = Path();

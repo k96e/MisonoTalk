@@ -152,10 +152,14 @@ String randomizeBackslashes(String resp) {
 
   for (int i = 0; i < resp.length; i++) {
     if (resp[i] == '\\') {
-      if (random.nextInt(3) == 0) {
-        result.write('\\\\');
-      } else {
+      if (i + 1 < resp.length && (resp[i + 1] == '*'||resp[i + 1] == '（'||resp[i + 1] == '(')) {
         result.write('\\');
+      } else {
+        if (random.nextInt(3) == 0) {
+          result.write('\\\\');
+        } else {
+          result.write('\\');
+        }
       }
     } else {
       result.write(resp[i]);
