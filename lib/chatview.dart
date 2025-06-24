@@ -111,14 +111,14 @@ class ChatBubbleLayoutLeft extends StatelessWidget {
                   child: CustomPaint(
                     painter:
                         BubblePainter(isFirstBubble: idx == 0, isLeft: true, 
-                          bubbleColor: isStar?const Color(0xffdce5ec):const Color(0xff4c5b70)),
+                          bubbleColor: isStar?const Color(0x884c5b70):const Color(0xff4c5b70)),
                     child: Container(
                       padding: const EdgeInsets.symmetric(
                           horizontal: 8, vertical: 4),
                       child: Text(
                         message,
                         style: isStar 
-                          ? const TextStyle(fontSize: 14, color: Color(0xff4c5b70))
+                          ? const TextStyle(fontSize: 14, color: Colors.white)
                           : const TextStyle(fontSize: 18, color: Colors.white),
                       ),
                     ),
