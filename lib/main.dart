@@ -389,7 +389,9 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
     bool isBuild = false;
     bool buildLock = false;
     TextEditingController controller = TextEditingController();
-    showDialog(context: context, builder: (context){
+    showDialog(context: context, 
+      barrierDismissible: !Platform.isAndroid,
+      builder: (context){
       return StatefulBuilder(builder: (context, setState) {
         return AlertDialog(
           title: const Text("AiDraw"),
