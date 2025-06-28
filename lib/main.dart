@@ -444,8 +444,20 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
                       isBuild = true;
                     });
                     controller.text = prompt.split("</think>").last;
+                    if(!isForeground){
+                      notification.showNotification(
+                        title: "AiDraw", 
+                        body: "Build done", 
+                        showAvatar: false);
+                    }
                   }, (err){
                     errDialog(err.toString(),canRetry: false);
+                    if(!isForeground){
+                      notification.showNotification(
+                        title: "AiDraw", 
+                        body: "Build error", 
+                        showAvatar: false);
+                    }
                   });
                 }
               },
