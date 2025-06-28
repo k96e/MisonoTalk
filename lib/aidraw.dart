@@ -33,7 +33,7 @@ class AiDrawState extends State<AiDraw> with WidgetsBindingObserver{
   late SdConfig sdConfig;
 
   Future<void> buildPrompt() async {
-    if(widget.msg == null) {
+    if(widget.msg == null || widget.msg!.isEmpty) {
       snackBarAlert(context, "No message to build prompt!");
       return;
     }
@@ -408,7 +408,7 @@ class AiDrawState extends State<AiDraw> with WidgetsBindingObserver{
         if(value == null) return;
         apiController.text = value;
     });
-    if(widget.msg != null) {
+    if(widget.msg != null || widget.msg!.isEmpty) {
       buildPrompt();
     }
     storage.getSdConfig().then((memConfig) {

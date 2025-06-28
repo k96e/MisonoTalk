@@ -415,7 +415,7 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
           actions: [
             TextButton(
               onPressed: () {
-                Navigator.of(context).pop();
+                Navigator.of(context).pop("SKIP");
               },
               child: const Text('Skip'),
             ),
@@ -467,7 +467,8 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
         );
       });
     }).then((res){
-      debugPrint("res: $res");
+      if(res == null) return;
+      if(res == "SKIP") res = "";
       Navigator.push(
         context,
         MaterialPageRoute(
