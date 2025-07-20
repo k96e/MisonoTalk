@@ -6,7 +6,13 @@ class ChatElement extends StatelessWidget {
   final String message;
   final int type;
   final String stuName;
-  const ChatElement({super.key, required this.message, required this.type, required this.stuName});
+  final ImageProvider avatarImage;
+  const ChatElement({super.key, 
+    required this.message, 
+    required this.type, 
+    required this.stuName,
+    required this.avatarImage
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -14,7 +20,7 @@ class ChatElement extends StatelessWidget {
       return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           for(var m in message.split("\\\\")) 
             if(m.isNotEmpty) 
-              ChatBubbleLayoutLeft(name: stuName, messages: m.split("\\")),
+              ChatBubbleLayoutLeft(name: stuName, messages: m.split("\\"), avatarImage: avatarImage,),
           const SizedBox(height: 10),
         ]);
     } else if (type == Message.user) {
@@ -67,24 +73,27 @@ Widget centerBubble(String msg) {
 class ChatBubbleLayoutLeft extends StatelessWidget {
   final String name;
   final List<String> messages;
+  final ImageProvider avatarImage;
 
   const ChatBubbleLayoutLeft({
     super.key,
     required this.name,
     required this.messages,
+    required this.avatarImage,
   });
+
 
   @override
   Widget build(BuildContext context) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const SizedBox(
+        SizedBox(
           width: 50,
           child: Padding(
-            padding: EdgeInsets.only(top: 7),
+            padding: const EdgeInsets.only(top: 7),
             child: CircleAvatar(
-              backgroundImage: AssetImage("assets/avatar.png"),
+              backgroundImage: avatarImage,
               radius: 25,
             )
           )

@@ -6,25 +6,26 @@ class Contact {
   final String name;
   final String message;
   final int unreadCount;
-  final String? avatarAssetName;
+  final ImageProvider avatarImage;
   final bool isFavorite;
 
   Contact({
     required this.name,
     required this.message,
     required this.unreadCount,
-    this.avatarAssetName,
+    required this.avatarImage,
     this.isFavorite = false,
   });
 }
 
 class LeftPanelWidget extends StatelessWidget {
-  LeftPanelWidget({super.key, this.msgStr});
+  LeftPanelWidget({super.key, this.msgStr, required this.avatarImage});
   final String? msgStr;
+  final ImageProvider avatarImage;
   final baWidgets = Bawidgets();
 
-  final List<Contact> _contacts = [
-    Contact(name: "未花", message: "あと……いつもありがとね", unreadCount: 0, avatarAssetName: "assets/avatar.png", isFavorite: true),
+  List<Contact> get _contacts => [
+    Contact(name: "未花", message: "あと……いつもありがとね", unreadCount: 0, avatarImage: avatarImage, isFavorite: true),
   ];
 
   Widget _buildLeftTabBar() {
@@ -83,20 +84,6 @@ class LeftPanelWidget extends StatelessWidget {
 
 
   Widget _buildContactListItem(BuildContext context, Contact contact) {
-    Widget avatarDisplay;
-    if (contact.avatarAssetName != null && contact.avatarAssetName!.isNotEmpty) {
-       avatarDisplay = CircleAvatar(
-        radius: 22,
-        backgroundImage: AssetImage(contact.avatarAssetName!),
-      );
-    } else {
-      avatarDisplay = CircleAvatar(
-        radius: 22,
-        backgroundColor: Colors.grey[300],
-        child: const Icon(Icons.person, color: Colors.white, size: 28),
-      );
-    }
-
     return Material(
       //color: bgColor,
       child: InkWell(
@@ -105,7 +92,10 @@ class LeftPanelWidget extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 10.0),
           child: Row(
             children: [
-              avatarDisplay,
+              CircleAvatar(
+                radius: 22,
+                backgroundImage: avatarImage
+              ),
               const SizedBox(width: 10),
               Expanded(
                 child: Column(

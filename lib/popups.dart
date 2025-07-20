@@ -3,6 +3,7 @@ import 'notifications.dart';
 import 'dart:async' show Timer;
 import 'utils.dart' show Config;
 import 'storage.dart' show StorageService;
+import 'avatars.dart';
 
 Future<String> replaceStr(BuildContext context, String target) async {
   TextEditingController fromStr = TextEditingController(text: '');
@@ -345,6 +346,35 @@ Future<Config?> quickSettingPopup(BuildContext context, RelativeRect position,
         storage.setCurrentApiConfig(config.name);
         return config;
       }
+    }
+    return null;
+  });
+}
+
+Future<Avatar?> logoPopup(BuildContext context, RelativeRect position) async {
+  if (!context.mounted) return null;
+  return await showMenu(
+    context: context,
+    position: position,
+    items: AvatarManager().avatarList.map((avatar) {
+      return PopupMenuItem(
+        value: avatar,
+        child: Row(
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: Image.asset(avatar.assetPath, width: 32, height: 32),
+            ),
+            const SizedBox(width: 8),
+            Text(avatar.name),
+          ],
+        ),
+      );
+    }).toList(),
+  ).then((value) {
+    if (value is Avatar) {
+      AvatarManager().avatarIndex = value.id;
+      return value;
     }
     return null;
   });

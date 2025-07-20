@@ -25,6 +25,7 @@ import 'msgeditor.dart';
 import 'aidraw.dart';
 import 'recordmsgs.dart';
 import 'leftpanel.dart';
+import 'avatars.dart';
 
 
 main() async {
@@ -99,6 +100,7 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
   List<String> recordMessages=[];
   late AppLinks appLinks;
   StreamSubscription<Uri>? linksSubscription;
+  int avatarIndex = 1;
 
   Future<void> initialize() async {
     clearMsg();
@@ -971,6 +973,7 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
                                       message: message.message,
                                       type: message.type,
                                       stuName: studentName,
+                                      avatarImage: AvatarManager().getAvatar()
                                     )
                                   )
                                 )
@@ -987,7 +990,8 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
                               child: ChatElement(
                               message: message.message, 
                               type: message.type,
-                              stuName: studentName
+                              stuName: studentName,
+                              avatarImage: AvatarManager().getAvatar(),
                               )
                             )
                           );
@@ -1082,6 +1086,16 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
                 ),
               ),
               onDoubleTap: () => setScrollPercent(0),
+              onLongPress: () {
+                final Size screenSize = MediaQuery.of(context).size;
+                final RelativeRect pos = RelativeRect.fromLTRB(
+                  0, 0, screenSize.width, screenSize.height);
+                logoPopup(context, pos).then((Avatar? avatar) {
+                  if (avatar != null) {
+                    setState(() {});
+                  }
+                });
+              }
             )
           ),
           flexibleSpace: DragToMoveArea(
@@ -1106,7 +1120,8 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
                   Expanded(
                     flex: 3,
                     child: LeftPanelWidget(
-                      msgStr: getLeftPanelMsg()
+                      msgStr: getLeftPanelMsg(),
+                      avatarImage: AvatarManager().getAvatar(),
                     ),
                   ),
                   const VerticalDivider(width: 1, color: Colors.grey),
