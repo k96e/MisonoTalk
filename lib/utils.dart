@@ -135,7 +135,7 @@ List<List<String>> parseMsg(String prompt, List<Message> messages, List<String> 
       msg.add(["system",m.message]);
     } else if (m.type == Message.timestamp) {
       var timestr = timestampToSystemMsg(m.message);
-      msg.add(["system","下面的对话开始于$timestr"]);
+      msg.add(["system",timestr]);
     }
   }
   bool multipleAssistantMsgs = msg.where((m) => m[0] == "assistant").length > 1;
