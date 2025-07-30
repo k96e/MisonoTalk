@@ -77,7 +77,8 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
   static const String studentName = "未花";
   List<String> welcomeMsgs = [
     "Sensei你终于来啦！\\我可是个乖乖看家的好孩子哦",
-    "Sensei，欢迎回来！\\我在等你哦！"
+    "Sensei，欢迎回来！\\我在等你哦！",
+    "欢迎回来\\亲爱的！\\要先洗澡？还是先吃饭？\\还是说——\\\\开玩笑的啦\\开玩笑开玩笑☆"
   ];
   List<List<String>> specialWelcomeMsgs = [
     ["新年快乐，Sensei！ \\\\虽然是这样的我\\今年也请多多指教哦☆","1-1"],
