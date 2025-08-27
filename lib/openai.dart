@@ -63,21 +63,25 @@ Future<void> completion(Config config, List<List<String>> message,
       response?.stream?.listen((data) {
         try {
           var decoded = jsonDecode(data.data);
-          if(decoded["choices"]?[0]["delta"]["reasoning_content"]!=null){
-            if(!isReasoning){
-              isReasoning = true;
-              onEevent('<think>${decoded["choices"][0]["delta"]["reasoning_content"]}');
+          final choices = decoded["choices"];
+          if (choices is List && choices.isNotEmpty) {
+            final delta = choices[0]["delta"];
+            if (delta["reasoning_content"] != null) {
+              if (!isReasoning) {
+                isReasoning = true;
+                onEevent('<think>${delta["reasoning_content"]}');
+              }
+              onEevent(delta["reasoning_content"]);
+              return;
             }
-            onEevent(decoded["choices"][0]["delta"]["reasoning_content"]);
-            return;
-          }
-          if (decoded["choices"]?[0]["delta"]["content"] != null) {
-            hasContent = true;
-            if(isReasoning){
-              isReasoning = false;
-              onEevent('</think>${decoded["choices"][0]["delta"]["content"]}');
-            }else{
-              onEevent(decoded["choices"][0]["delta"]["content"]);
+            if (delta["content"] != null) {
+              hasContent = true;
+              if (isReasoning) {
+                isReasoning = false;
+                onEevent('</think>${delta["content"]}');
+              } else {
+                onEevent(delta["content"]);
+              }
             }
           }
         } catch (e) {
