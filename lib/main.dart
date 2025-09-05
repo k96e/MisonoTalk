@@ -724,6 +724,10 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
 
   void onMenuSelected(String value)  async {
     if (value == 'Clear') {
+      if (messages.length<=1) {
+        clearMsg();
+        return;
+      }
       showDialog(
         context: context,
         builder: (context) => AlertDialog(
