@@ -11,6 +11,7 @@ import 'package:app_links/app_links.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'dart:io' show Platform;
 import 'dart:convert' show base64, jsonDecode, utf8;
+import 'mainpopup.dart' show mainPopup;
 import 'chatview.dart';
 import 'configpage.dart';
 import 'notifications.dart';
@@ -858,6 +859,8 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
             promptLength: promptLength)
         )
       );
+    }else{
+      debugPrint("unknown menu: $value");
     }
   }
 
@@ -877,74 +880,22 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
   }
 
   Widget popupMenu() {
-    return PopupMenuButton<String>(
+    return IconButton(
+      onPressed: (){
+        showDialog(context: context, builder: (BuildContext dialogContext){
+          return AlertDialog(
+            content: SizedBox(
+              width: MediaQuery.of(context).size.width,
+              child: mainPopup(dialogContext,externalPrompt, inputLock, isOnTop, onMenuSelected),
+            )
+          );
+        });
+      },
       icon: const Icon(
         Icons.close,
         color: Colors.white,
         size: 40,
-      ),
-      itemBuilder: (context) => [
-        const PopupMenuItem(
-          value: 'Clear',
-          child: Text('Clear'),
-        ),
-        const PopupMenuItem(
-          value: 'Save',
-          child: Text('Save'),
-        ),
-        const PopupMenuItem(
-          value: 'Time',
-          child: Text('Time'),
-        ),
-        const PopupMenuItem(
-          value: 'System',
-          child: Text('System'),
-        ),
-        PopupMenuItem(
-          value: 'ExtPrompt',
-          child: Text('ExtPrompt ${externalPrompt?"√":"×"}'),
-        ),
-        const PopupMenuItem(
-          value: 'Backup',
-          child: Text('Backup...'),
-        ),
-        const PopupMenuItem(
-          value: 'Draw',
-          child: Text('AiDraw...'),
-        ),
-        const PopupMenuItem(
-          value: 'History',
-          child: Text('History...'),
-        ),
-        const PopupMenuItem(
-          value: 'Records',
-          child: Text('Records...'),
-        ),
-        const PopupMenuItem(
-          value: 'Msgs',
-          child: Text('Msgs...'),
-        ),
-        const PopupMenuItem(
-          value: 'Settings',
-          child: Text('Settings...'),
-        ),
-        if (inputLock)
-          const PopupMenuItem(
-            value: 'Stop',
-            child: Text('Stop'),
-          ),
-        if (Platform.isWindows)
-          PopupMenuItem(
-            value: 'OnTop',
-            child: Text('OnTop ${isOnTop?"√":"×"}'),
-          ),
-        if (Platform.isWindows)
-          const PopupMenuItem(
-            value: 'Exit',
-            child: Text('Exit'),
-          ),
-      ],
-      onSelected: (String value) {onMenuSelected(value);},
+      )
     );
   }
 
