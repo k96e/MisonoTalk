@@ -51,6 +51,10 @@ android {
             signingConfig = signingConfigs.debug
             shrinkResources false
         }
+        profile {
+            signingConfig = signingConfigs.debug
+            shrinkResources false
+        }
         debug {
             applicationIdSuffix = ".debug"
         }
