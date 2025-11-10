@@ -59,6 +59,6 @@ class NotificationReceiver : BroadcastReceiver() {
                 e.printStackTrace()
             }
         }
-        notificationManager.notify(1, notificationBuilder.build())
+        notificationManager.notify(java.util.Random().nextInt(), notificationBuilder.build())
     }
 }
