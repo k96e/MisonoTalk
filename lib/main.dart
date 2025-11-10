@@ -89,6 +89,7 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
   ];
   Config config = Config(name: "", baseUrl: "", apiKey: "", model: "");
   DateTime? currentBackPressTime;
+  String? addInst;
   String userMsg = "";
   int splitCount = 0;
   bool externalPrompt = false;
@@ -121,6 +122,7 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
       debugPrint(payload);
       handleAppLink(uri.queryParameters);
     });
+    addInst = await storage.getAddInst();
   }
 
   @override
@@ -633,7 +635,8 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
       inputLock = true;
       debugPrint("inputLocked");
     });
-    List<List<String>> msg = parseMsg(await storage.getPrompt(withExternal: externalPrompt), messages, welcomeMsgs);
+    List<List<String>> msg = parseMsg(await storage.getPrompt(withExternal: externalPrompt), 
+      messages, welcomeMsgs, addInst: addInst);
     logMsg(msg.sublist(1));
     bool notificationSent= false;
     try {
@@ -859,7 +862,16 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
             promptLength: promptLength)
         )
       );
-    }else{
+    }else if (value == 'AddInst') {
+      addInstPopup(context, addInst).then((String? value){
+        if(value==null) return;
+        storage.setAddInst(value);
+        addInst = value;
+        debugPrint("addInst: $value");
+        snackBarAlert(context, "addInst set");
+      });
+    }
+    else{
       debugPrint("unknown menu: $value");
     }
   }

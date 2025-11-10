@@ -379,3 +379,61 @@ Future<Avatar?> logoPopup(BuildContext context, RelativeRect position) async {
     return null;
   });
 }
+
+Future<String?> addInstPopup(BuildContext context, String? currentInst) async {
+  if (!context.mounted) return null;
+  final value = await showDialog(
+    context: context,
+    builder: (context) {
+      TextEditingController controller = TextEditingController(text: currentInst ?? '');
+      bool isEnabled = true;
+      if (currentInst != null && currentInst.startsWith("*off*")){
+        isEnabled = false;
+        controller.text = currentInst.replaceFirst("*off*", "");
+      }
+      return AlertDialog(
+        title: const Text("AddInst"),
+        content: StatefulBuilder(
+          builder: (BuildContext context, StateSetter setState) {
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                SwitchListTile(
+                  title: const Text('启用'),
+                  value: isEnabled,
+                  onChanged: (bool value) {
+                    setState(() {
+                      isEnabled = value;
+                    });
+                  },
+                ),
+                TextField(
+                  controller: controller,
+                  maxLines: null,
+                ),
+              ],
+            );
+          },
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            child: const Text('取消'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop(isEnabled ? controller.text : "*off*${controller.text}");
+            },
+            child: const Text('保存'),
+          ),
+        ],
+      );
+    },
+  );
+  if (value is String) {
+    return value;
+  }
+  return null;
+}

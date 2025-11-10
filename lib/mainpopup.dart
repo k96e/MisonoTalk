@@ -29,6 +29,7 @@ Widget mainPopup(BuildContext context,bool externalPrompt, bool inputLock, bool 
         buttonItem(context, const Icon(Icons.info_outline), "System", "插入系统提示词", onSelected),
         buttonItem(context, externalPrompt?const Icon(Icons.more):const Icon(Icons.more_outlined), 
           "ExtPrompt", "扩展提示词 ${externalPrompt ? "√" : "×"}", onSelected),
+        buttonItem(context, const Icon(Icons.add_comment), "AddInst", "每轮对话末尾的附加指令", onSelected),
         buttonItem(context, const Icon(Icons.backup), "Backup", "WebDav备份", onSelected),
         buttonItem(context, const Icon(Icons.brush), "Draw", "AI 绘画...", onSelected),
         buttonItem(context, const Icon(Icons.history), "History", "本地历史记录", onSelected),

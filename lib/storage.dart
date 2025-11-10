@@ -132,6 +132,17 @@ class StorageService {
     return _prefs.getString("temp_history");
   }
 
+  void setAddInst(String msg) async {
+    await _prefs.setString("add_inst", msg);
+  }
+
+  Future<String?> getAddInst() async {
+    if (_prefs.containsKey("add_inst")) {
+      return _prefs.getString("add_inst");
+    }
+    return null;
+  }
+
   Future<String> convertToJson() async {
     final keys = _prefs.getKeys();
     

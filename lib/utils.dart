@@ -114,7 +114,8 @@ String timestampToSystemMsg(String timestr) {
   return "下面的对话开始于 $result";
 }
 
-List<List<String>> parseMsg(String prompt, List<Message> messages, List<String> welcomeMsgs) {
+List<List<String>> parseMsg(String prompt, List<Message> messages, 
+  List<String> welcomeMsgs, {String? addInst}) {
   List<List<String>> msg = [];
   msg.add(["system",prompt]);
   bool hideFlag = false;
@@ -142,6 +143,10 @@ List<List<String>> parseMsg(String prompt, List<Message> messages, List<String> 
   if (multipleAssistantMsgs && msg.length > 1 && msg[1][0] == "assistant" && 
       welcomeMsgs.contains(msg[1][1])) {
     msg.removeAt(1);
+  }
+  if (msg.last[0] == "user" && addInst != null &&
+      addInst.isNotEmpty && !addInst.startsWith("*off*")) {
+    msg.last[1] = "${msg.last[1]}\\(system instruction: $addInst)";
   }
   return msg;
 }
