@@ -859,7 +859,9 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
           builder: (context) => RecordMsgs(
             msgs: recordMessages.reversed.toList(),
             updateMsg: loadHistory,
-            promptLength: promptLength)
+            promptLength: promptLength,
+            currentMsg: msgListToJson(messages)
+          )
         )
       );
     }else if (value == 'AddInst') {

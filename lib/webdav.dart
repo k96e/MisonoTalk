@@ -251,7 +251,7 @@ class WebdavPageState extends State<WebdavPage> {
       (BuildContext context) {
         return AlertDialog(
           title: Text(isEncrypted ? "${messageRecords[index].time} - 🔒":messageRecords[index].time),
-          content: msgsListWidget(context, loadedMessage, isReverse: false),
+          content: msgsListWidget(context, loadedMessage, isReverse: false, jsonMsgCompare: widget.currentMessages),
           actions: <Widget>[
             TextButton(
               onPressed: () {

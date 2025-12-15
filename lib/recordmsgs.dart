@@ -6,7 +6,8 @@ class RecordMsgs extends StatefulWidget {
   final List<String> msgs;
   final Function(String) updateMsg;
   final int promptLength;
-  const RecordMsgs({super.key, required this.msgs, required this.updateMsg, required this.promptLength});
+  final String? currentMsg;
+  const RecordMsgs({super.key, required this.msgs, required this.updateMsg, required this.promptLength, this.currentMsg});
 
   @override
   RecordMsgsState createState() => RecordMsgsState();
@@ -83,7 +84,7 @@ class RecordMsgsState extends State<RecordMsgs> {
                         (BuildContext context) {
                           return AlertDialog(
                             title: const Text('Content'),
-                            content: msgsListWidget(context, widget.msgs[index]),
+                            content: msgsListWidget(context, widget.msgs[index], jsonMsgCompare: widget.currentMsg),
                             actions: <Widget>[
                               TextButton(
                                 onPressed: () {
