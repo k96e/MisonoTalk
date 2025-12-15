@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'utils.dart' show Message, copyMsgs;
+import 'dart:convert' show utf8;
+import 'utils.dart' show Message, copyMsgs, msgListToJson;
 
 class MsgEditor extends StatefulWidget {
   final List<Message> msgs;
@@ -15,6 +16,8 @@ class MsgEditorState extends State<MsgEditor> {
   late List<Message> msgs;
   int lastSwipe = -1;
   int hideLength = 0;
+  int wordCount = 0;
+  double fileSize = 0.0;
 
   @override
   void initState() {
@@ -23,12 +26,13 @@ class MsgEditorState extends State<MsgEditor> {
     for (Message msg in msgs) {
       if (msg.isHide) hideLength += msg.message.length;
     }
+    calcWordCount();
     super.initState();
   }
 
-  int wordCount(){
-    if (msgs.isEmpty) return 0;
-    return msgs.map((msg){
+  void calcWordCount(){
+    if (msgs.isEmpty) wordCount = 0;
+    wordCount = msgs.map((msg){
       switch(msg.type){
         case Message.user:
         case Message.assistant:
@@ -40,6 +44,8 @@ class MsgEditorState extends State<MsgEditor> {
           return 0;
       }
     }).reduce((a,b)=>a+b);
+    int encodedLengh = utf8.encode(msgListToJson(msgs)).length+widget.promptLength+30;
+    fileSize = encodedLengh*1.33/1024 - 6.18;
   }
 
   String typeDesc(int type){
@@ -61,9 +67,9 @@ class MsgEditorState extends State<MsgEditor> {
       body: Column(
         children: <Widget>[
           Center(
-            child: hideLength==0? Text('共${msgs.length}条消息, ${widget.promptLength+wordCount()}字')
-              :Text('共${msgs.length}条消息, ${widget.promptLength+wordCount()}字, '
-                'hide后约${widget.promptLength+wordCount()-hideLength+9}字')
+            child: hideLength==0? Text('共${msgs.length}条消息, ${widget.promptLength+wordCount}字, 约${fileSize.toStringAsFixed(2)}KB')
+              :Text('共${msgs.length}条消息, ${widget.promptLength+wordCount}字, '
+                'hide后约${widget.promptLength+wordCount-hideLength+9}字')
           ),
           Padding(
             padding: const EdgeInsets.all(8.0),
@@ -90,6 +96,7 @@ class MsgEditorState extends State<MsgEditor> {
                       for (Message msg in msgs) {
                         if (msg.isHide) hideLength += msg.message.length;
                       }
+                      calcWordCount();
                     });
                   },
                   child: const Text('删除'),
