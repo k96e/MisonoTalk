@@ -148,6 +148,10 @@ List<List<String>> parseMsg(String prompt, List<Message> messages,
       addInst.isNotEmpty && !addInst.startsWith("*off*")) {
     msg.last[1] = "${msg.last[1]}\\(system instruction: $addInst)";
   }
+  if (msg.last[0] == "system"){
+    msg.last[1] = "*system instruction: ${msg.last[1]}*";
+    msg.last[0] = "user";
+  }
   return msg;
 }
 
