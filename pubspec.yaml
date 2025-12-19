@@ -53,6 +53,7 @@ dependencies:
   crypto: ^3.0.6
   qr_flutter: ^4.1.0
   flutter_svg: ^2.1.0
+  just_the_tooltip: ^0.0.12
 
 dev_dependencies:
   flutter_test:

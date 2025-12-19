@@ -7,7 +7,8 @@ import 'package:flutter/material.dart';
 import 'package:webdav_client/webdav_client.dart';
 import 'storage.dart';
 import 'aesutil.dart' show AesUtil;
-import 'utils.dart' show snackBarAlert,msgsListWidget;
+import 'msglist.dart' show msgsListWidget;
+import 'utils.dart' show snackBarAlert;
 
 class WebdavPage extends StatefulWidget {
   final String currentMessages;

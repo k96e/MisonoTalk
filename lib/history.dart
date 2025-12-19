@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'storage.dart';
 import 'openai.dart' show completion;
-import 'utils.dart' show snackBarAlert, Config, msgsListWidget;
+import 'utils.dart' show snackBarAlert, Config;
+import 'msglist.dart' show msgsListWidget;
 
 class HistoryPage extends StatefulWidget {
   final Function(String) updateFunc;

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'utils.dart' show Message, jsonToMsg, msgsListWidget;
+import 'utils.dart' show Message, jsonToMsg;
+import 'msglist.dart' show msgsListWidget;
 import 'storage.dart';
 
 class RecordMsgs extends StatefulWidget {
