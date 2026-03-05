@@ -146,6 +146,7 @@ class ConfigPageState extends State<ConfigPage> {
       final dio = Dio();
       dio.options.headers["Accept"] = "application/json";
       dio.options.headers["Authorization"] = "Bearer $apiKey";
+      dio.options.headers["User-Agent"] = "MisonoTalk/beta";
       dio.options.sendTimeout = const Duration(seconds: 10);
       dio.options.receiveTimeout = const Duration(seconds: 10);
       dio.options.connectTimeout = const Duration(seconds: 10);

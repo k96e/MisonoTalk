@@ -57,6 +57,7 @@ Future<void> completion(Config config, List<List<String>> message,
     header: {
       'Authorization': 'Bearer ${config.apiKey}',
       'Content-Type': 'application/json',
+      'User-Agent': 'MisonoTalk/beta',
     },
     body: data,
     onSuccessCallback: (EventFluxResponse? response) {
