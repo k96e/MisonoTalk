@@ -333,6 +333,52 @@ Future<Config?> quickSettingPopup(BuildContext context, RelativeRect position,
     StorageService storage) async {
   List<Config> configs = await storage.getApiConfigs();
   if (!context.mounted) return null;
+  
+  if (configs.length > 16) {
+    return await showDialog<Config>(
+      context: context,
+      builder: (context) {
+        Map<String, List<Config>> grouped = {};
+        for (var c in configs) {
+          String domain = c.baseUrl.replaceAll(RegExp(r'^https?://'), '').split('/')[0];
+          if (domain.isEmpty) domain = 'unknown';
+          grouped.putIfAbsent(domain, () => []).add(c);
+        }
+        String firstKey = grouped.keys.first;
+        return AlertDialog(
+          title: const Text('选择配置'),
+          content: SizedBox(
+            width: double.maxFinite,
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: grouped.entries.map((e) {
+                  return ExpansionTile(
+                    initiallyExpanded: e.key == firstKey,
+                    title: Text(e.key, style: const TextStyle(fontSize: 14), overflow: TextOverflow.ellipsis),
+                    children: e.value.map((c) {
+                      return ListTile(
+                        title: Text(c.model, overflow: TextOverflow.ellipsis),
+                        onTap: () {
+                          Navigator.of(context).pop(c);
+                        },
+                      );
+                    }).toList(),
+                  );
+                }).toList(),
+              ),
+            ),
+          ),
+        );
+      },
+    ).then((value) {
+      if (value != null) {
+        storage.setCurrentApiConfig(value.name);
+      }
+      return value;
+    });
+  }
+
   return await showMenu(
     context: context,
     position: position,
