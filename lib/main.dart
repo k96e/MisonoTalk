@@ -193,7 +193,7 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
       late Config c;
       try {
         Map<String,String> configMap = Map<String,String>.from(
-          jsonDecode(utf8.decode(base64.decode(payload['c']!))));
+          jsonDecode(utf8.decode(base64.decode(payload['c']!.replaceAll(" ", "+")))));
         c = Config.fromJson(configMap);
       } catch (e) {
         errDialog("无法解析配置：\n${e.toString()}",canRetry: false);
