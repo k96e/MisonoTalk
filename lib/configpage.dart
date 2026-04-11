@@ -153,8 +153,9 @@ class ConfigPageState extends State<ConfigPage> {
       final resp = await dio.get("$baseUrl/models");
       
       List<List<String>> models = [];
+      debugPrint(resp.data.toString());
       for (var model in resp.data["data"]) {
-        models.add([model["id"], model["owned_by"]]);
+        models.add([model["id"], model["owned_by"] ?? "unknown"]);
       }
       Navigator.of(dialogContext).pop();
       showDialog(
