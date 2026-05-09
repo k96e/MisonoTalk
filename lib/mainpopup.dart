@@ -16,7 +16,7 @@ Widget buttonItem(BuildContext context,Icon icon, String value, String desc, voi
   );
 }
 
-Widget mainPopup(BuildContext context,bool externalPrompt, bool inputLock, bool isOnTop, void Function(String value) onSelected) {
+Widget mainPopup(BuildContext context,bool externalPrompt, bool inputLock, bool isOnTop, void Function(String value) onSelected, [Map<String, dynamic>? usageData]) {
   return LayoutBuilder(
     builder: (context, constraints) {
       final itemWidth = constraints.maxWidth / 2;
@@ -43,11 +43,23 @@ Widget mainPopup(BuildContext context,bool externalPrompt, bool inputLock, bool 
           buttonItem(context, const Icon(Icons.exit_to_app), "Exit", "退出应用", onSelected),
       ];
       const int splitWidth = 340;
-      return GridView.count(
-        crossAxisCount: constraints.maxWidth > splitWidth ? 2 : 1,
-        shrinkWrap: true,
-        childAspectRatio: constraints.maxWidth>splitWidth?(itemWidth/80):(itemWidth/40),
-        children: items,
+      return Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Flexible(
+            child: GridView.count(
+              crossAxisCount: constraints.maxWidth > splitWidth ? 2 : 1,
+              shrinkWrap: true,
+              childAspectRatio: constraints.maxWidth>splitWidth?(itemWidth/80):(itemWidth/40),
+              children: items,
+            ),
+          ),
+          if (usageData != null)
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Text(usageData.toString(), style: const TextStyle(fontSize: 12)),
+            ),
+        ],
       );
       
       /*SingleChildScrollView(

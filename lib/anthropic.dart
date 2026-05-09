@@ -40,7 +40,8 @@ import 'utils.dart' show Config, removeTailSlash;
 Future<void> completion(Config config, List<List<String>> message,
     Function(String) onEvent,
     Function() onDone,
-    Function(String) onErr) async {
+    Function(String) onErr,
+    {Function(Map<String, dynamic>)? onUsage}) async {
 
   var (systemPrompts, messages) = splitAndAlternate(message);
 
@@ -111,7 +112,7 @@ Future<void> completion(Config config, List<List<String>> message,
 
           if (type == "message_delta") {
             if (decoded.containsKey("usage")) {
-              print(decoded["usage"]);
+              onUsage?.call(Map<String, dynamic>.from(decoded["usage"]));
             }
             return;
           }

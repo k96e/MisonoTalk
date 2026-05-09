@@ -104,6 +104,7 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
   late AppLinks appLinks;
   StreamSubscription<Uri>? linksSubscription;
   int avatarIndex = 1;
+  Map<String, dynamic>? usageData;
 
   Future<void> initialize() async {
     clearMsg();
@@ -641,7 +642,7 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
     bool notificationSent= false;
     try {
       String response = "";
-      await completion(config, msg, 
+      await completion(config, msg,
         (String resp){
           resp = resp.replaceAll(RegExp(r'[\n\\]+'), r'\');
           resp = randomizeBackslashes(resp);
@@ -709,6 +710,10 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
             isAutoNotification = true;
             notification.showNotification(title: "Error", body: "", showAvatar: false);
           }
+        }, onUsage: (usage){
+          setState(() {
+            usageData = usage;
+          });
         });
     } catch (e) {
       setState(() {
@@ -900,7 +905,7 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver{
           return AlertDialog(
             content: SizedBox(
               width: MediaQuery.of(context).size.width,
-              child: mainPopup(dialogContext,externalPrompt, inputLock, isOnTop, onMenuSelected),
+              child: mainPopup(dialogContext,externalPrompt, inputLock, isOnTop, onMenuSelected, usageData),
             )
           );
         });

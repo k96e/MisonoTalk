@@ -27,9 +27,10 @@ List<List<String>> mergeMessages(List<List<String>> messages) {
 Future<void> completion(Config config, List<List<String>> message,
     Function(String) onEevent,
     Function() onDone,
-    Function(String) onErr) async {
+    Function(String) onErr,
+    {Function(Map<String, dynamic>)? onUsage}) async {
   if (config.name.toLowerCase().contains('anthropic')) {
-    return anthropic.completion(config, message, onEevent, onDone, onErr);
+    return anthropic.completion(config, message, onEevent, onDone, onErr, onUsage: onUsage);
   }
   if(config.model=='deepseek-reasoner'){
     message = mergeMessages(message);
