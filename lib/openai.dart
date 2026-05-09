@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:eventflux/eventflux.dart';
 import 'utils.dart' show Config, removeTailSlash;
+import 'anthropic.dart' as anthropic;
 
 
 List<List<String>> mergeMessages(List<List<String>> messages) {
@@ -24,9 +25,12 @@ List<List<String>> mergeMessages(List<List<String>> messages) {
 }
 
 Future<void> completion(Config config, List<List<String>> message,
-    Function(String) onEevent, 
-    Function() onDone, 
+    Function(String) onEevent,
+    Function() onDone,
     Function(String) onErr) async {
+  if (config.name.toLowerCase().contains('anthropic')) {
+    return anthropic.completion(config, message, onEevent, onDone, onErr);
+  }
   if(config.model=='deepseek-reasoner'){
     message = mergeMessages(message);
   }
